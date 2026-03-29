@@ -10,6 +10,7 @@ The key rule is: do not mix raw observations, candidate tricks, and curated publ
 - `candidates/`: harvested trick candidates from benchmark captures and session reports
 - `tricks/`: curated trick cards that are fit for broader reuse
 - `indexes/`: generated navigation pages for candidates and curated tricks
+- `papers/`: generated paper-ready findings and draft assembly artifacts
 - `schemas/`: templates and structure for trick cards
 - `docs/`: contribution workflow and promotion criteria
 

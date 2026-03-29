@@ -66,4 +66,5 @@ revisit_when: if binary wire format is introduced, rerun this path
 - keep short summaries in the branch log
 - keep run-specific reasoning next to the measurement capture
 - if the idea looks reusable beyond the current project, also fill in the `Reusable Optimization Trick Candidate` section so it can be harvested into the catalog
+- if the finding looks novel or publication-worthy, also fill in the `Paper-Ready Finding` section so it can be harvested into the paper bundle
 - include the highest-signal kept and rejected ideas in the final report

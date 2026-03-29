@@ -437,6 +437,27 @@ cat > "$SESSION_DIR/starter-report.md" <<EOF
 - candidate_for_catalog: yes | no
 - promotion_notes:
 
+## Paper-Ready Finding
+
+- finding_title:
+- claim:
+- finding_type: positive | negative | enabling | mixed
+- novelty_class: novel synthesis | adaptation | replication | unclear
+- bottleneck_class:
+- intervention:
+- baseline_condition:
+- improved_condition:
+- primary_metric:
+- effect_size:
+- secondary_effects:
+- mechanism:
+- operating_region:
+- prerequisites:
+- caveats:
+- reproducibility_artifacts:
+- figure_or_table_suggestion:
+- paper_candidate: yes | no
+
 ## Baseline
 
 -

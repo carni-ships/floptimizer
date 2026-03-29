@@ -74,6 +74,7 @@ Load these references as needed:
 - [`references/rollout-and-regression.md`](references/rollout-and-regression.md) for shipping the win safely and preventing silent performance regressions later.
 - [`references/self-improvement.md`](references/self-improvement.md) for turning repeated execution friction into evidence-backed skill updates instead of ad hoc rewrites.
 - [`references/trick-catalog.md`](references/trick-catalog.md) for consulting and contributing to the reusable trick repository built from prior runs.
+- [`references/paper-ready-findings.md`](references/paper-ready-findings.md) for capturing novel or publication-worthy findings in a form that can be assembled into a paper later.
 - [`references/exemplars.md`](references/exemplars.md) for a navigation index to high-performance open-source repos worth studying once the bottleneck class is known.
 - [`references/pattern-catalog.md`](references/pattern-catalog.md) for a navigation index to reusable optimization patterns distilled from those exemplars.
 
@@ -142,6 +143,7 @@ When a promising direction feels “too large,” scope the next falsifying spik
 - For serious experiments, record the hypothesis, expected mechanism, result, and revisit condition in the capture notes or a compact experiment journal.
 - Update the branch log after serious experiments so blocked directions can be revisited when later work changes their prerequisites.
 - If a serious run teaches a generally reusable trick, fill in the `Reusable Optimization Trick Candidate` section in the notes or starter report and periodically harvest it with [`scripts/harvest_trick_candidates.sh`](scripts/harvest_trick_candidates.sh).
+- If a run produces a novel, mixed, negative, or otherwise paper-worthy result, fill in the `Paper-Ready Finding` section and periodically harvest it with [`scripts/harvest_paper_findings.sh`](scripts/harvest_paper_findings.sh).
 - If multiple agents are exploring in parallel, use [`references/agent-coordination.md`](references/agent-coordination.md) so edit ownership, experiment branches, and compute-heavy jobs are coordinated explicitly. Prefer git branches or worktrees plus a live shared claim ledger rather than git alone.
 - If a path failed because of current constraints rather than a bad underlying idea, capture the concrete unblockers so a future agent on different hardware or after other improvements can retry it intelligently.
 
@@ -265,6 +267,8 @@ When progress stalls or measurements start disagreeing, consult [`references/ite
 When there are multiple plausible directions, consult [`references/exploration-graph.md`](references/exploration-graph.md) so blocked ideas stay visible and can be revisited when enabling work lands.
 When the reasoning behind a serious attempt is likely to matter later, consult [`references/experiment-log.md`](references/experiment-log.md) and write down why it worked, failed, or remained blocked.
 When a run produces a reusable optimization idea, consult [`references/trick-catalog.md`](references/trick-catalog.md), harvest the candidate into `catalog/candidates/`, and prefer `catalog/indexes/curated-tricks.md` over raw candidate cards when reusing prior advice.
+When a run yields a paper-worthy finding, consult [`references/paper-ready-findings.md`](references/paper-ready-findings.md) and harvest it into `catalog/papers/arxiv-findings.md` so future agents can assemble a research-style writeup without reconstructing the evidence from scratch.
+If multiple paper-ready findings have accumulated, use [`scripts/generate_paper_skeleton.sh`](scripts/generate_paper_skeleton.sh) to draft an arXiv-style paper skeleton with sections, table candidates, and reproducibility notes.
 
 ## Phase 6: Validate Side Effects
 
