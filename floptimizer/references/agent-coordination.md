@@ -75,6 +75,7 @@ but only one of them should hold the heavy compute slot for:
 - profiling sessions
 - large builds
 - sweep runs
+- detached or background heavy jobs
 
 When the compute slot is occupied:
 
@@ -82,6 +83,8 @@ When the compute slot is occupied:
 - prepare next experiments
 - review earlier findings
 - update coordination notes
+
+A background job still occupies the compute slot until it exits or is terminated. Detached execution frees attention, not machine capacity.
 
 ## Parallel Search Pattern
 
@@ -111,6 +114,7 @@ Bad candidate split:
 - Keep a live claim ledger outside of git history assumptions.
 - Do not edit files claimed by another active agent without re-coordination.
 - Do not launch heavy compute jobs without claiming the compute slot.
+- Keep the compute slot claimed for background or detached jobs until the process actually ends.
 - Record blocked, won, lost, and active experiment branches in one shared place.
 - If claims overlap, serialize the work rather than hoping merge cleanup will be cheap.
 - Release claims quickly when you stop actively working that area.

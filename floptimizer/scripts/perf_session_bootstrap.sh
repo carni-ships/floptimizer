@@ -8,6 +8,7 @@ LABEL=""
 REPORT_TITLE="Performance Session Report"
 RUN_NOISE_CHECK=1
 RUN_TOOL_SCOUT=1
+DETACH_BASELINE=0
 EXPECTED_DURATION=""
 SOFT_CHECKPOINT=""
 HARD_STOP=""
@@ -21,11 +22,12 @@ COMPUTE_SLOT=""
 usage() {
   cat <<'EOF'
 Usage:
-  perf_session_bootstrap.sh [--label NAME] [--root DIR] [--output-root DIR] [--report-title TITLE] [--skip-noise-check] [--skip-tool-scout] [--with-coordination-ledger] [--coordination-ledger PATH] [--agent-name NAME] [--hypothesis-branch TEXT] [--write-scope TEXT] [--compute-slot TEXT] [--expected-duration TEXT] [--soft-checkpoint TEXT] [--hard-stop TEXT] [-- <baseline command> ...]
+  perf_session_bootstrap.sh [--label NAME] [--root DIR] [--output-root DIR] [--report-title TITLE] [--skip-noise-check] [--skip-tool-scout] [--detach-baseline] [--with-coordination-ledger] [--coordination-ledger PATH] [--agent-name NAME] [--hypothesis-branch TEXT] [--write-scope TEXT] [--compute-slot TEXT] [--expected-duration TEXT] [--soft-checkpoint TEXT] [--hard-stop TEXT] [-- <baseline command> ...]
 
 Examples:
   perf_session_bootstrap.sh --label api-p99 --root .
   perf_session_bootstrap.sh --label cli-startup --root . -- hyperfine 'cargo run --release -- --help'
+  perf_session_bootstrap.sh --label nightly --root . --detach-baseline -- hyperfine 'cargo run --release -- input.json'
 
 Creates a timestamped session directory containing:
   - system snapshot
@@ -89,6 +91,10 @@ while [ $# -gt 0 ]; do
       ;;
     --skip-tool-scout)
       RUN_TOOL_SCOUT=0
+      shift
+      ;;
+    --detach-baseline)
+      DETACH_BASELINE=1
       shift
       ;;
     --with-coordination-ledger)
@@ -207,6 +213,9 @@ NOISE_EXIT_STATUS=0
 BASELINE_CAPTURE_DIR=""
 BASELINE_EXIT_STATUS="not-run"
 BASELINE_SUMMARY=""
+BASELINE_STATE_PATH=""
+BASELINE_RUNNER_PID=""
+BASELINE_RUN_MODE="not-run"
 TELEMETRY_SNAPSHOT_SUMMARY="$SESSION_DIR/telemetry_snapshot_summary.txt"
 
 if [ -f "$SCRIPT_DIR/system_snapshot.sh" ]; then
@@ -294,6 +303,9 @@ fi
 
 if [ $# -gt 0 ] && [ -f "$SCRIPT_DIR/bench_capture.sh" ]; then
   BENCH_CMD=(bash "$SCRIPT_DIR/bench_capture.sh" --output-root "$SESSION_DIR/captures" --label baseline)
+  if [ "$DETACH_BASELINE" = "1" ]; then
+    BENCH_CMD+=(--detach)
+  fi
   if [ "$RUN_NOISE_CHECK" = "0" ]; then
     BENCH_CMD+=(--skip-noise-check)
   fi
@@ -335,6 +347,12 @@ if [ $# -gt 0 ] && [ -f "$SCRIPT_DIR/bench_capture.sh" ]; then
   BASELINE_EXIT_STATUS="$BASELINE_STATUS"
   BASELINE_CAPTURE_DIR="$(printf '%s\n' "$BASELINE_OUTPUT" | sed -n 's/^capture_dir=//p' | tail -n 1)"
   BASELINE_SUMMARY="$(printf '%s\n' "$BASELINE_OUTPUT" | sed -n 's/^summary=//p' | tail -n 1)"
+  BASELINE_STATE_PATH="$(printf '%s\n' "$BASELINE_OUTPUT" | sed -n 's/^state_path=//p' | tail -n 1)"
+  BASELINE_RUNNER_PID="$(printf '%s\n' "$BASELINE_OUTPUT" | sed -n 's/^runner_pid=//p' | tail -n 1)"
+  BASELINE_RUN_MODE="$(printf '%s\n' "$BASELINE_OUTPUT" | sed -n 's/^run_mode=//p' | tail -n 1)"
+  if [ "$DETACH_BASELINE" = "1" ] && [ "$BASELINE_STATUS" = "0" ]; then
+    BASELINE_EXIT_STATUS="detached"
+  fi
 else
   printf 'baseline capture not requested\n' > "$SESSION_DIR/baseline_capture_console.txt"
 fi
@@ -350,6 +368,7 @@ cat > "$SESSION_DIR/starter-report.md" <<EOF
 - session_dir: $SESSION_DIR
 - machine_noise_status: $NOISE_STATUS
 - baseline_exit_status: $BASELINE_EXIT_STATUS
+- baseline_run_mode: ${BASELINE_RUN_MODE:-not-run}
 - coordination_ledger: ${COORDINATION_LEDGER:-none}
 
 ## Artifacts
@@ -362,6 +381,7 @@ cat > "$SESSION_DIR/starter-report.md" <<EOF
 - baseline_capture_console: $SESSION_DIR/baseline_capture_console.txt
 - baseline_capture_dir: ${BASELINE_CAPTURE_DIR:-not-run}
 - baseline_summary: ${BASELINE_SUMMARY:-not-run}
+- baseline_state_path: ${BASELINE_STATE_PATH:-not-run}
 
 ## Goal
 
@@ -491,6 +511,9 @@ EOF
   printf 'baseline_exit_status=%q\n' "$BASELINE_EXIT_STATUS"
   printf 'baseline_capture_dir=%q\n' "${BASELINE_CAPTURE_DIR:-}"
   printf 'baseline_summary=%q\n' "${BASELINE_SUMMARY:-}"
+  printf 'baseline_state_path=%q\n' "${BASELINE_STATE_PATH:-}"
+  printf 'baseline_runner_pid=%q\n' "${BASELINE_RUNNER_PID:-}"
+  printf 'baseline_run_mode=%q\n' "${BASELINE_RUN_MODE:-not-run}"
   printf 'coordination_ledger=%q\n' "${COORDINATION_LEDGER:-none}"
   printf 'agent_name=%q\n' "${AGENT_NAME:-none}"
   printf 'hypothesis_branch=%q\n' "${HYPOTHESIS_BRANCH:-none}"
@@ -514,4 +537,7 @@ if [ -n "$COORDINATION_LEDGER" ]; then
 fi
 if [ -n "$BASELINE_CAPTURE_DIR" ]; then
   printf 'baseline_capture_dir=%s\n' "$BASELINE_CAPTURE_DIR"
+fi
+if [ -n "$BASELINE_STATE_PATH" ]; then
+  printf 'baseline_state_path=%s\n' "$BASELINE_STATE_PATH"
 fi

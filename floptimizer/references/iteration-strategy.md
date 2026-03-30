@@ -260,6 +260,7 @@ If a promising path keeps getting dismissed as “too big”:
 - test the spike if it is cheap enough to produce a strong yes or no
 - only park the branch as too large after the spike itself is genuinely too costly or too low-value
 - if the spike is promising but the full rewrite is not yet justified, keep the branch parked with explicit revisit conditions instead of dropping it
+- if the hesitation comes from rewrite scope, use [`rewrite-decomposition.md`](rewrite-decomposition.md) and force the branch into slice, boundary, oracle, and fallback language before you let it halt
 
 If the local code keeps getting cleaner or faster in isolation but end-to-end progress is stuck:
 

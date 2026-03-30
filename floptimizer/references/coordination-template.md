@@ -28,6 +28,9 @@ last_updated:
 
 - holder:
   task:
+  run_mode: foreground | background | detached
+  pid_or_session:
+  logs:
   expected_duration:
   soft_checkpoint:
   hard_stop:
@@ -48,4 +51,5 @@ Suggested use:
 - keep `Active Agents` small and current
 - keep `Write Claims` narrow
 - allow only one active heavy `Compute Slot` holder per shared machine unless you know the workloads will not interfere
+- background or detached jobs should still keep the `Compute Slot` claimed until they really finish
 - use `Experiment Frontier` as the shared branch log so agents do not rediscover the same direction

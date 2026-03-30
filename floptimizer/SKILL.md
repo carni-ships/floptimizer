@@ -65,6 +65,7 @@ Use [`references/invariants-and-acceptance.md`](references/invariants-and-accept
 - When a path is blocked or looks dead in the current environment, write down what would unblock it: more memory, a different device class, larger batches, lower temporary memory pressure, a dependency upgrade, cleaner ownership, or some other concrete change.
 - Do not reject a direction only because the full rollout sounds like a major human project. First scope the smallest bounded spike that could falsify or validate it, and estimate that effort separately from the eventual production implementation.
 - Keep refactor-heavy directions alive when the upside is real. A large eventual rewrite is not a reason to discard a branch if a narrow hot-slice spike or staged rewrite could still teach something important.
+- Do not halt a promising rewrite-heavy direction with "too major of a lift" until you have written the smallest slice, boundary, oracle, and fallback. Use [`references/rewrite-decomposition.md`](references/rewrite-decomposition.md) when that decomposition is not obvious.
 - Write down the reasoning behind serious attempts so later agents can tell why an idea won, failed, or is merely blocked.
 - Preserve correctness, security, durability, privacy, and debuggability. Do not introduce undefined behavior, benchmark-only hacks, silent precision loss, unbounded memory growth, or durability regressions.
 - Change one performance variable at a time whenever possible so gains remain attributable.
@@ -110,7 +111,9 @@ Load these references as needed:
 - [`references/tuning-matrix.md`](references/tuning-matrix.md) for preserving per-environment parameter wins when hardware, firmware, driver, or runtime differences move the optimum.
 - [`references/research-strategy.md`](references/research-strategy.md) for bounded literature review when the bottleneck class is known and recent work may expand the hypothesis set.
 - [`references/novel-hypothesis-generation.md`](references/novel-hypothesis-generation.md) for generating speculative first-principles branches after known patterns and literature have already been mined.
+- [`references/rewrite-decomposition.md`](references/rewrite-decomposition.md) for breaking a "too major" rewrite into a bounded spike, containment boundary, oracle, and fallback path.
 - [`references/language-quickstart.md`](references/language-quickstart.md) for a fast first profiler command and common hotspot-grep ideas by language.
+- [`references/lower-level-language-choice.md`](references/lower-level-language-choice.md) for deciding when a hotspot should stay in the current language, move into a native core, and which target language is usually the best fit.
 - [`references/hardware-acceleration.md`](references/hardware-acceleration.md) for SIMD, GPU, Metal, accelerator, and heterogeneous-compute decisions.
 - [`references/apple-silicon-cpu.md`](references/apple-silicon-cpu.md) for deeper Apple Silicon CPU tuning with NEON, matrix-oriented CPU paths, compiler-inspection workflow, and choosing between Accelerate, intrinsics, and Metal.
 - [`references/optimization-playbook.md`](references/optimization-playbook.md) for aggressive but safe tuning ideas across application, runtime, database, network, OS, and build layers.
@@ -159,6 +162,7 @@ If the must-not-break properties or minimum meaningful win are still fuzzy, open
 If the next move is clearly judgment-heavy, raise the reasoning budget before deciding it. Use [`references/reasoning-budget.md`](references/reasoning-budget.md) when you need a quick rule for when to think harder versus staying procedural.
 If the next move is mostly a known sequence of tool calls, captures, comparisons, or process launches, lower the reasoning budget if the platform supports it. If that sequence is likely to repeat, prefer a small script or helper so the agent stops re-solving the same orchestration problem.
 When a promising direction feels “too large,” scope the next falsifying spike before parking it. Use [`references/idea-ranking.md`](references/idea-ranking.md) to separate next-step effort from full rollout effort.
+If the hesitation comes from rewrite scope rather than true evidence, open [`references/rewrite-decomposition.md`](references/rewrite-decomposition.md) and decompose the path before allowing yourself to park it.
 
 ## Phase 2: Build a Trustworthy Measurement Harness
 
@@ -166,6 +170,7 @@ When a promising direction feels “too large,” scope the next falsifying spik
 - If nothing usable exists, create the smallest faithful harness possible.
 - If correctness coverage is weak around the optimized behavior, add the smallest targeted tests, fixtures, property checks, or differential checks needed to catch semantic drift.
 - When a benchmark command is likely to be reused, run it through [`scripts/bench_capture.sh`](scripts/bench_capture.sh) so the exact command line, environment, git state, wait budget, coordination context, and raw output stay attached to the result.
+- For non-interactive multi-minute runs, prefer [`scripts/bench_capture.sh`](scripts/bench_capture.sh) with `--detach` so the run stays supervised while the agent uses the waiting window for non-competing work.
 - When a multi-step measurement or capture sequence becomes routine, script it or reuse a bundled helper instead of re-orchestrating it from scratch each time.
 - Measure both central tendency and tails. Median-only wins can still worsen p99.
 - Keep a real control baseline. If a bundled change wins, use [`references/ablation-and-controls.md`](references/ablation-and-controls.md) to determine which part mattered and which part was only enabling work.
@@ -181,6 +186,7 @@ When a promising direction feels “too large,” scope the next falsifying spik
 - If the result may be narrow, noisy, or hardware-sensitive, use [`references/uncertainty-and-sensitivity.md`](references/uncertainty-and-sensitivity.md) before declaring it robust.
 - If telemetry or noise checks say the machine is currently throttled, saturated, or busy with other work, stop launching new compute-heavy jobs for a while. Use that time for non-competing work such as reviewing prior findings, tightening hypotheses, ranking branches, literature review, or planning the next spike.
 - If a benchmark, profile, or build will run for minutes or longer, set an expected duration, a soft checkpoint, and a hard stop. Use [`references/wait-budgets.md`](references/wait-budgets.md) if that budget is unclear.
+- If the run is non-interactive and the platform supports reliable supervision, prefer launching it in the background or a detached session with logs, PID or session handle, and a clean termination path captured. Free the agent's attention; do not free the compute slot.
 - Use that waiting time for non-competing work, and match the reasoning budget to the task: deeper effort for hypothesis generation, causal explanation, or branch selection; lighter effort for capture review, note cleanup, and other routine execution. Use [`references/reasoning-budget.md`](references/reasoning-budget.md) if that choice is unclear. Use [`references/wait-budgets.md`](references/wait-budgets.md) for the detailed waiting policy. Do not invalidate the run by starting competing heavy jobs.
 - Preserve commands and fixtures so the benchmark can be rerun after each change.
 - For serious experiments, record the hypothesis, expected mechanism, result, and revisit condition in the capture notes or a compact experiment journal.
@@ -299,6 +305,7 @@ When a toolchain-specific profiler exists, prefer it over generic timing:
 When SIMD, GPU, Metal, CUDA, Core ML, ANE, or other accelerators might matter, consult [`references/hardware-acceleration.md`](references/hardware-acceleration.md) before offloading work. Prefer CPU SIMD and multicore first unless the kernel is already known to be massively parallel and transfer or synchronization overhead is small. Remember that accelerator wins are often path-dependent: batching, layout cleanup, and memory-traffic reduction may be prerequisites rather than optional polish.
 When the optimum may vary across GPU memory sizes, CPU core counts, drivers, firmware, or runtime versions, consult [`references/tuning-matrix.md`](references/tuning-matrix.md) and leave behind per-environment parameter notes instead of pretending one configuration is universal.
 When writing those notes, mark whether the result is a conceptual direction, a machine-specific lucky number, or a mix. Future agents should trust the principle more than the exact constant.
+When the question is whether the hotspot should remain in the current language at all, consult [`references/lower-level-language-choice.md`](references/lower-level-language-choice.md) and choose a narrow native-core spike before reasoning about a wholesale migration.
 
 After the bottleneck class is clear, consult [`references/exemplars.md`](references/exemplars.md) and open the domain file that matches the problem. Borrow patterns, validation strategy, and architecture shape; do not cargo-cult code or unverified benchmark claims.
 When progress in first-party code stalls, inspect whether the hot path actually lives in a dependency, runtime, driver, or database layer. Consider dependency configuration, version upgrades, alternate implementations, or narrowly scoped upstream patches before assuming the remaining wins must come from local code.

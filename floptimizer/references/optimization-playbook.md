@@ -80,6 +80,8 @@ Tooling by ecosystem:
 - JVM/.NET: use production-like benchmarks, inspect object lifetime and GC pauses, tune heap and collectors only after locating churn sources.
 - C/C++: validate compiler flags, inlining, vectorization, aliasing assumptions, and allocator choice; use sanitizers to keep aggressive changes safe.
 
+If the real question is whether the hotspot should stay in the current language at all, consult [`lower-level-language-choice.md`](lower-level-language-choice.md). Prefer a narrow native core or kernel spike before discussing a wholesale migration.
+
 ## Dependencies And Third-Party Surfaces
 
 Do not assume all remaining wins must come from first-party code.

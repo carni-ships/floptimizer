@@ -59,4 +59,5 @@ Use this file when you want a fast first profiler command and one or two common 
 ## Notes
 
 - These are starting points, not a substitute for the deeper workflow.
+- If the question becomes "should this hotspot move into a lower-level language or native core?", open [`lower-level-language-choice.md`](lower-level-language-choice.md).
 - After the first pass, return to [`benchmarking.md`](benchmarking.md), [`bottleneck-map.md`](bottleneck-map.md), and [`idea-ranking.md`](idea-ranking.md).

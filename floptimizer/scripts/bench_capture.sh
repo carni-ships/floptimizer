@@ -8,6 +8,7 @@ RUN_NOISE_CHECK=1
 RUN_TELEMETRY=1
 TELEMETRY_INTERVAL="${BENCH_CAPTURE_TELEMETRY_INTERVAL_SECONDS:-5}"
 TELEMETRY_PID=""
+COMMAND_PID=""
 EXPECTED_DURATION=""
 SOFT_CHECKPOINT=""
 HARD_STOP=""
@@ -16,14 +17,25 @@ HYPOTHESIS_BRANCH=""
 WRITE_SCOPE=""
 COORDINATION_LEDGER=""
 COMPUTE_SLOT=""
+DETACH=0
+INTERNAL_RUNNER=0
+RUN_DIR_OVERRIDE=""
+RUN_MODE="foreground"
+RUN_STATUS="preparing"
+RUN_STATE_PATH=""
+TERMINATE_SCRIPT_PATH=""
+DETACHED_LAUNCH_LOG=""
+COMMAND_EXIT_STATUS="not-run"
+RUNNER_PID_VALUE=""
 
 usage() {
   cat <<'EOF'
 Usage:
-  bench_capture.sh [--label NAME] [--output-root DIR] [--skip-noise-check] [--skip-telemetry] [--telemetry-interval SECONDS] [--expected-duration TEXT] [--soft-checkpoint TEXT] [--hard-stop TEXT] [--coordination-ledger PATH] [--agent-name NAME] [--hypothesis-branch TEXT] [--write-scope TEXT] [--compute-slot TEXT] -- <command> [args...]
+  bench_capture.sh [--label NAME] [--output-root DIR] [--skip-noise-check] [--skip-telemetry] [--telemetry-interval SECONDS] [--detach] [--expected-duration TEXT] [--soft-checkpoint TEXT] [--hard-stop TEXT] [--coordination-ledger PATH] [--agent-name NAME] [--hypothesis-branch TEXT] [--write-scope TEXT] [--compute-slot TEXT] -- <command> [args...]
 
 Examples:
   bench_capture.sh --label baseline -- hyperfine 'cargo test --release'
+  bench_capture.sh --label nightly-sweep --detach -- hyperfine 'cargo run --release -- input.json'
   bench_capture.sh --output-root /tmp/perf-runs -- ./target/release/my-cli --input data.json
 
 Creates a timestamped run directory and stores:
@@ -36,6 +48,7 @@ Creates a timestamped run directory and stores:
   - experiment notes template
   - stdout/stderr
   - timing and exit status
+  - run_state.env for detached supervision
 EOF
 }
 
@@ -79,15 +92,59 @@ git_field() {
   printf '%s\n' "$fallback"
 }
 
+write_run_state() {
+  if [ -z "${RUN_STATE_PATH:-}" ]; then
+    return
+  fi
+
+  {
+    printf 'capture_dir=%q\n' "$RUN_DIR"
+    printf 'run_mode=%q\n' "$RUN_MODE"
+    printf 'run_status=%q\n' "$RUN_STATUS"
+    printf 'runner_pid=%q\n' "${RUNNER_PID_VALUE:-$$}"
+    printf 'command_pid=%q\n' "${COMMAND_PID:-}"
+    printf 'command_exit_status=%q\n' "${COMMAND_EXIT_STATUS:-not-run}"
+    printf 'command=%q\n' "${COMMAND_QUOTED:-}"
+    printf 'stdout_path=%q\n' "$RUN_DIR/stdout.txt"
+    printf 'stderr_path=%q\n' "$RUN_DIR/stderr.txt"
+    printf 'telemetry_path=%q\n' "$RUN_DIR/telemetry.txt"
+    printf 'notes_path=%q\n' "$RUN_DIR/notes.md"
+    printf 'summary_path=%q\n' "$RUN_DIR/summary.txt"
+    printf 'capture_env_path=%q\n' "$RUN_DIR/capture.env"
+    printf 'rerun_path=%q\n' "$RUN_DIR/rerun.sh"
+    printf 'terminate_script=%q\n' "${TERMINATE_SCRIPT_PATH:-}"
+    printf 'detached_launch_log=%q\n' "${DETACHED_LAUNCH_LOG:-}"
+    printf 'expected_duration=%q\n' "${EXPECTED_DURATION:-not-recorded}"
+    printf 'soft_checkpoint=%q\n' "${SOFT_CHECKPOINT:-not-recorded}"
+    printf 'hard_stop=%q\n' "${HARD_STOP:-not-recorded}"
+    printf 'last_update_utc=%q\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  } > "$RUN_STATE_PATH"
+}
+
 cleanup() {
   if [ -n "${TELEMETRY_PID:-}" ]; then
     kill "$TELEMETRY_PID" >/dev/null 2>&1 || true
     wait "$TELEMETRY_PID" >/dev/null 2>&1 || true
     TELEMETRY_PID=""
   fi
+
+  if [ -n "${COMMAND_PID:-}" ]; then
+    kill "$COMMAND_PID" >/dev/null 2>&1 || true
+    wait "$COMMAND_PID" >/dev/null 2>&1 || true
+    COMMAND_PID=""
+  fi
+}
+
+handle_termination() {
+  RUN_STATUS="terminated"
+  COMMAND_EXIT_STATUS="terminated"
+  write_run_state
+  cleanup
+  exit 143
 }
 
 trap cleanup EXIT
+trap handle_termination TERM INT
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -122,6 +179,11 @@ while [ $# -gt 0 ]; do
       fi
       TELEMETRY_INTERVAL="$2"
       shift 2
+      ;;
+    --detach)
+      DETACH=1
+      RUN_MODE="background"
+      shift
       ;;
     --expected-duration)
       if [ $# -lt 2 ]; then
@@ -187,6 +249,26 @@ while [ $# -gt 0 ]; do
       COMPUTE_SLOT="$2"
       shift 2
       ;;
+    --_runner)
+      INTERNAL_RUNNER=1
+      shift
+      ;;
+    --run-dir)
+      if [ $# -lt 2 ]; then
+        echo "--run-dir requires a value" >&2
+        exit 2
+      fi
+      RUN_DIR_OVERRIDE="$2"
+      shift 2
+      ;;
+    --run-mode)
+      if [ $# -lt 2 ]; then
+        echo "--run-mode requires a value" >&2
+        exit 2
+      fi
+      RUN_MODE="$2"
+      shift 2
+      ;;
     --help|-h)
       usage
       exit 0
@@ -208,8 +290,15 @@ if [ $# -eq 0 ]; then
   exit 2
 fi
 
-mkdir -p "$OUTPUT_ROOT"
-OUTPUT_ROOT="$(cd "$OUTPUT_ROOT" && pwd)"
+if [ "$INTERNAL_RUNNER" = "1" ] && [ -z "$RUN_DIR_OVERRIDE" ]; then
+  echo "--_runner requires --run-dir" >&2
+  exit 2
+fi
+
+if [ "$INTERNAL_RUNNER" != "1" ]; then
+  mkdir -p "$OUTPUT_ROOT"
+  OUTPUT_ROOT="$(cd "$OUTPUT_ROOT" && pwd)"
+fi
 
 if [ -n "$COORDINATION_LEDGER" ] && [ -e "$COORDINATION_LEDGER" ]; then
   COORDINATION_LEDGER="$(cd "$(dirname "$COORDINATION_LEDGER")" && pwd)/$(basename "$COORDINATION_LEDGER")"
@@ -227,11 +316,16 @@ if [ -n "$LABEL_SLUG" ]; then
   RUN_NAME="${RUN_NAME}_${LABEL_SLUG}"
 fi
 
-RUN_DIR="${OUTPUT_ROOT%/}/$RUN_NAME"
-if [ -e "$RUN_DIR" ]; then
-  RUN_DIR="${RUN_DIR}_$$"
+if [ "$INTERNAL_RUNNER" = "1" ]; then
+  mkdir -p "$RUN_DIR_OVERRIDE"
+  RUN_DIR="$(cd "$RUN_DIR_OVERRIDE" && pwd)"
+else
+  RUN_DIR="${OUTPUT_ROOT%/}/$RUN_NAME"
+  if [ -e "$RUN_DIR" ]; then
+    RUN_DIR="${RUN_DIR}_$$"
+  fi
+  mkdir -p "$RUN_DIR"
 fi
-mkdir -p "$RUN_DIR"
 
 COMMAND_QUOTED="$(printf '%q ' "$@")"
 COMMAND_QUOTED="${COMMAND_QUOTED% }"
@@ -239,6 +333,9 @@ HOSTNAME_VALUE="$(hostname 2>/dev/null || printf 'unknown\n')"
 GIT_ROOT="$(git_field "not-a-git-repo" git rev-parse --show-toplevel)"
 GIT_BRANCH="$(git_field "detached-or-unavailable" git rev-parse --abbrev-ref HEAD)"
 GIT_HEAD="$(git_field "unavailable" git rev-parse HEAD)"
+RUN_STATE_PATH="$RUN_DIR/run_state.env"
+TERMINATE_SCRIPT_PATH="$RUN_DIR/terminate.sh"
+DETACHED_LAUNCH_LOG="$RUN_DIR/detached_runner.log"
 GIT_DIRTY="unknown"
 if have git && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   if [ -n "$(git status --porcelain 2>/dev/null || true)" ]; then
@@ -246,6 +343,88 @@ if have git && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   else
     GIT_DIRTY="no"
   fi
+fi
+
+cat > "$TERMINATE_SCRIPT_PATH" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+STATE_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/run_state.env"
+if [ ! -f "$STATE_PATH" ]; then
+  echo "Missing run_state.env next to terminate.sh" >&2
+  exit 1
+fi
+
+# shellcheck disable=SC1090
+. "$STATE_PATH"
+
+if [ -z "${runner_pid:-}" ]; then
+  echo "runner_pid missing from $STATE_PATH" >&2
+  exit 1
+fi
+
+kill "$runner_pid"
+EOF
+chmod +x "$TERMINATE_SCRIPT_PATH"
+
+if [ "$DETACH" = "1" ] && [ "$INTERNAL_RUNNER" != "1" ]; then
+  RUN_STATUS="launching"
+  write_run_state
+
+  RUNNER_CMD=(bash "$0" --_runner --run-dir "$RUN_DIR" --run-mode background)
+  if [ -n "$LABEL" ]; then
+    RUNNER_CMD+=(--label "$LABEL")
+  fi
+  if [ "$RUN_NOISE_CHECK" = "0" ]; then
+    RUNNER_CMD+=(--skip-noise-check)
+  fi
+  if [ "$RUN_TELEMETRY" = "0" ]; then
+    RUNNER_CMD+=(--skip-telemetry)
+  fi
+  RUNNER_CMD+=(--telemetry-interval "$TELEMETRY_INTERVAL")
+  if [ -n "$EXPECTED_DURATION" ]; then
+    RUNNER_CMD+=(--expected-duration "$EXPECTED_DURATION")
+  fi
+  if [ -n "$SOFT_CHECKPOINT" ]; then
+    RUNNER_CMD+=(--soft-checkpoint "$SOFT_CHECKPOINT")
+  fi
+  if [ -n "$HARD_STOP" ]; then
+    RUNNER_CMD+=(--hard-stop "$HARD_STOP")
+  fi
+  if [ -n "$COORDINATION_LEDGER" ]; then
+    RUNNER_CMD+=(--coordination-ledger "$COORDINATION_LEDGER")
+  fi
+  if [ -n "$AGENT_NAME" ]; then
+    RUNNER_CMD+=(--agent-name "$AGENT_NAME")
+  fi
+  if [ -n "$HYPOTHESIS_BRANCH" ]; then
+    RUNNER_CMD+=(--hypothesis-branch "$HYPOTHESIS_BRANCH")
+  fi
+  if [ -n "$WRITE_SCOPE" ]; then
+    RUNNER_CMD+=(--write-scope "$WRITE_SCOPE")
+  fi
+  if [ -n "$COMPUTE_SLOT" ]; then
+    RUNNER_CMD+=(--compute-slot "$COMPUTE_SLOT")
+  fi
+  RUNNER_CMD+=(-- "$@")
+
+  if have nohup; then
+    nohup "${RUNNER_CMD[@]}" < /dev/null > "$DETACHED_LAUNCH_LOG" 2>&1 &
+  else
+    "${RUNNER_CMD[@]}" < /dev/null > "$DETACHED_LAUNCH_LOG" 2>&1 &
+  fi
+  DETACHED_PID=$!
+  RUNNER_PID_VALUE="$DETACHED_PID"
+  printf '%s\n' "$DETACHED_PID" > "$RUN_DIR/runner.pid"
+  RUN_STATUS="running"
+  write_run_state
+  printf 'capture_dir=%s\n' "$RUN_DIR"
+  printf 'run_mode=%s\n' "$RUN_MODE"
+  printf 'runner_pid=%s\n' "$DETACHED_PID"
+  printf 'state_path=%s\n' "$RUN_STATE_PATH"
+  printf 'summary=%s\n' "$RUN_DIR/summary.txt"
+  printf 'terminate_script=%s\n' "$TERMINATE_SCRIPT_PATH"
+  exit 0
 fi
 
 printf '%s\n' "$COMMAND_QUOTED" > "$RUN_DIR/command.txt"
@@ -299,6 +478,7 @@ cat > "$RUN_DIR/notes.md" <<EOF
 - command: \`$COMMAND_QUOTED\`
 - git_head: \`$GIT_HEAD\`
 - noise_status: $NOISE_STATUS
+- run_mode: $RUN_MODE
 
 ## Coordination Context
 
@@ -412,9 +592,17 @@ EOF
 
 START_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 START_MS="$(now_ms)"
+RUN_STATUS="running"
+RUNNER_PID_VALUE="$$"
+write_run_state
+
 set +e
-"$@" > "$RUN_DIR/stdout.txt" 2> "$RUN_DIR/stderr.txt"
+"$@" > "$RUN_DIR/stdout.txt" 2> "$RUN_DIR/stderr.txt" &
+COMMAND_PID=$!
+write_run_state
+wait "$COMMAND_PID"
 COMMAND_EXIT_STATUS=$?
+COMMAND_PID=""
 set -e
 END_MS="$(now_ms)"
 END_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -433,10 +621,16 @@ if [ "$TELEMETRY_STATUS" = "CAPTURED" ] && [ -f "$SCRIPT_DIR/telemetry_summary.s
   if bash "$SCRIPT_DIR/telemetry_summary.sh" "$RUN_DIR/telemetry.txt" > "$TELEMETRY_SUMMARY_PATH" 2>&1; then
     TELEMETRY_SUMMARY_STATUS="CAPTURED"
   else
-    TELEMETRY_SUMMARY_STATUS="ERROR"
+  TELEMETRY_SUMMARY_STATUS="ERROR"
   fi
 else
   printf 'telemetry summary skipped\n' > "$TELEMETRY_SUMMARY_PATH"
+fi
+
+if [ "$COMMAND_EXIT_STATUS" = "0" ]; then
+  RUN_STATUS="completed"
+else
+  RUN_STATUS="failed"
 fi
 
 {
@@ -446,6 +640,7 @@ fi
   printf 'cwd=%q\n' "$PWD"
   printf 'hostname=%q\n' "$HOSTNAME_VALUE"
   printf 'command=%q\n' "$COMMAND_QUOTED"
+  printf 'run_mode=%q\n' "$RUN_MODE"
   printf 'start_utc=%q\n' "$START_UTC"
   printf 'end_utc=%q\n' "$END_UTC"
   printf 'elapsed_ms=%q\n' "$ELAPSED_MS"
@@ -456,6 +651,8 @@ fi
   printf 'telemetry_path=%q\n' "$RUN_DIR/telemetry.txt"
   printf 'telemetry_summary_status=%q\n' "$TELEMETRY_SUMMARY_STATUS"
   printf 'telemetry_summary_path=%q\n' "$TELEMETRY_SUMMARY_PATH"
+  printf 'state_path=%q\n' "$RUN_STATE_PATH"
+  printf 'terminate_script=%q\n' "$TERMINATE_SCRIPT_PATH"
   printf 'notes_path=%q\n' "$RUN_DIR/notes.md"
   printf 'expected_duration=%q\n' "${EXPECTED_DURATION:-not-recorded}"
   printf 'soft_checkpoint=%q\n' "${SOFT_CHECKPOINT:-not-recorded}"
@@ -502,11 +699,15 @@ git_root=$GIT_ROOT
 git_branch=$GIT_BRANCH
 git_head=$GIT_HEAD
 git_dirty=$GIT_DIRTY
+run_mode=$RUN_MODE
+state_path=$RUN_STATE_PATH
+terminate_script=$TERMINATE_SCRIPT_PATH
 
 artifacts:
 - command.txt
 - capture.env
 - summary.txt
+- run_state.env
 - notes.md
 - stdout.txt
 - stderr.txt
@@ -518,6 +719,11 @@ artifacts:
 EOF
 
 printf 'capture_dir=%s\n' "$RUN_DIR"
+printf 'run_mode=%s\n' "$RUN_MODE"
+printf 'state_path=%s\n' "$RUN_STATE_PATH"
+printf 'summary=%s\n' "$RUN_DIR/summary.txt"
+printf 'terminate_script=%s\n' "$TERMINATE_SCRIPT_PATH"
+write_run_state
 printf 'exit_status=%s\n' "$COMMAND_EXIT_STATUS"
 printf 'elapsed_ms=%s\n' "$ELAPSED_MS"
 printf 'noise_status=%s\n' "$NOISE_STATUS"

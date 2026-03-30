@@ -115,6 +115,8 @@ If you already know the budget, record it in the capture or session helper up fr
 
 A long run should not create passive waiting. It should create a bounded window for non-competing work while the run stays isolated. Use [`wait-budgets.md`](wait-budgets.md) for the detailed waiting policy and [`reasoning-budget.md`](reasoning-budget.md) if you need help choosing between deeper analysis and lighter execution work during that window.
 
+If the run is non-interactive and expected to last more than a few minutes, prefer background or detached supervision when the environment supports reliable logs and termination. Keep the compute slot claimed and revisit the run at the soft checkpoint instead of hovering on it continuously.
+
 ## Cold, Warm, And Rewarm
 
 Warm is often faster, but it is not automatically better.
@@ -186,6 +188,12 @@ Example candidate capture after a change:
 scripts/bench_capture.sh --label candidate -- hyperfine 'cargo run --release -- input.json'
 ```
 
+Example detached capture for a long non-interactive run:
+
+```bash
+scripts/bench_capture.sh --label nightly-sweep --detach -- hyperfine 'cargo run --release -- input.json'
+```
+
 Then compare the two captured runs directly:
 
 ```bash
@@ -197,6 +205,7 @@ Each run directory contains:
 - `command.txt`: exact quoted command
 - `capture.env`: machine-readable metadata such as git SHA, elapsed time, and noise status
 - `summary.txt`: quick human-readable summary
+- `run_state.env`: live status for detached or still-running captures
 - `stdout.txt` and `stderr.txt`: raw command output
 - `system_snapshot.txt`: environment snapshot
 - `machine_noise.txt`: local-noise evidence
@@ -209,6 +218,7 @@ Keep per-environment tuning notes when the optimum depends on hardware or firmwa
 Use [`../scripts/bench_compare.sh`](../scripts/bench_compare.sh) to compare elapsed time and capture context before declaring a win.
 For recognized harnesses such as `hyperfine`, it prefers the inner benchmark metric when it can parse it; otherwise it falls back to the outer capture elapsed time and warns accordingly.
 If the run is part of a shared multi-agent campaign, also capture the coordination-ledger path, write scope, and compute-slot context so another agent can safely continue the work.
+For detached runs, use `run_state.env` and `terminate.sh` inside the capture directory to supervise the run and stop it cleanly if it crosses the hard stop.
 
 For a cleanup audit before benchmarking:
 

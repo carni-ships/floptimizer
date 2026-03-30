@@ -6,6 +6,7 @@ Use this file when a benchmark, profile, build, compile, or long-running experim
 
 - Why Set A Wait Budget
 - Three Numbers To Define
+- When To Background The Run
 - Healthy Progress Versus Bad Waiting
 - What To Do While Waiting
 - When To Terminate
@@ -41,6 +42,38 @@ Use wider ranges only when there is a concrete reason, such as:
 - known high-variance distributed setup
 - very large datasets
 - intentionally exhaustive sweeps
+
+## When To Background The Run
+
+For long non-interactive runs, prefer background or detached supervision when the environment supports it reliably.
+
+Good candidates:
+
+- multi-minute benchmarks
+- long builds or compiles
+- profile captures that do not need live interaction
+- sweep steps with stable commands and predictable logs
+
+Background the run only when you can still:
+
+- capture stdout and stderr to files
+- record the PID, job id, or session handle
+- poll progress at the soft checkpoint
+- terminate the run cleanly at the hard stop
+
+Do not background a run just to forget about it. Backgrounding should free attention, not monitoring responsibility.
+
+Keep the compute slot claimed while the background run is active. A detached benchmark still consumes shared machine capacity.
+
+The bundled helper [`../scripts/bench_capture.sh`](../scripts/bench_capture.sh) supports detached supervision with `--detach` and records `run_state.env`, logs, and a `terminate.sh` helper alongside the capture.
+
+Avoid backgrounding when:
+
+- the run needs interactive input or debugger steering
+- live output inspection is part of the experiment
+- the platform makes job control unreliable
+- the command is so short that supervision overhead is not worth it
+- another agent could mistake the machine as idle and start a competing heavy job
 
 ## Healthy Progress Versus Bad Waiting
 
@@ -92,6 +125,8 @@ If a run is stopped early, record:
 
 - expected duration
 - soft checkpoint and hard stop used
+- whether it ran foreground or background
+- PID, session handle, or log path when backgrounded
 - what progress signals were checked
 - why the run was allowed to continue or why it was terminated
 - whether the problem was likely a real workload cost, a stuck process, or a contaminated environment

@@ -50,6 +50,8 @@ Keep it compact:
 - current status
 - expected upside
 - blocker or prerequisite
+- smallest_slice if the branch is rewrite-heavy
+- oracle and fallback if the branch changes a risky boundary
 - concrete unblockers such as more GPU memory, lower temp memory pressure, larger batches, or a dependency/runtime change
 - source type such as literature-derived, exemplar-derived, or first-principles speculative
 - evidence so far

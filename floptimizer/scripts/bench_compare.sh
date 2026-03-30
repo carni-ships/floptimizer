@@ -51,6 +51,14 @@ load_capture_field() {
   local field="$2"
 
   if [ ! -f "$capture_dir/capture.env" ]; then
+    if [ -f "$capture_dir/run_state.env" ]; then
+      (
+        set -euo pipefail
+        # shellcheck disable=SC1090
+        . "$capture_dir/run_state.env"
+        echo "Capture is not finalized yet: run_status=${run_status:-unknown}, run_mode=${run_mode:-unknown}, state_path=$capture_dir/run_state.env" >&2
+      )
+    fi
     echo "Missing capture.env in $capture_dir" >&2
     exit 2
   fi

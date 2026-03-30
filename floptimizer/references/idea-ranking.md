@@ -93,6 +93,19 @@ Better framing:
 
 Use this especially when agents underestimate their own execution ability and accidentally reason in human-project terms instead of next-experiment terms.
 
+## Rewrite Decomposition Rule
+
+Do not park a rewrite-heavy idea until you can say:
+
+- what smallest slice gets rewritten first
+- what boundary isolates it
+- what oracle checks behavior
+- what fallback contains the risk
+
+If those are still vague, the problem is under-decomposition, not necessarily high effort.
+
+Use [`rewrite-decomposition.md`](rewrite-decomposition.md) when the branch sounds large but the ceiling is still attractive.
+
 ## Stack Descent Rule
 
 Lower-level ideas can be very valuable, but rank them explicitly instead of treating them as automatic next steps.
