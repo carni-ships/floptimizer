@@ -53,6 +53,7 @@ Keep it compact:
 - smallest_slice if the branch is rewrite-heavy
 - oracle and fallback if the branch changes a risky boundary
 - concrete unblockers such as more GPU memory, lower temp memory pressure, larger batches, or a dependency/runtime change
+- missing_capability and smallest_substitute when the path is blocked by unavailable repo access, missing bindings, or unsupported platform support
 - source type such as literature-derived, exemplar-derived, or first-principles speculative
 - evidence so far
 - link or pointer to detailed experiment notes when they exist
@@ -84,6 +85,7 @@ Examples:
 - multicore path blocked on shared ownership
 - SIMD path blocked on memory layout
 - GPU path blocked on 8 GB VRAM but potentially viable on 24 GB cards
+- accelerator path blocked because no backend exists for this runtime yet, but the hot kernel could be ported locally behind the current API
 - refactor-heavy fast path parked while the current abstractions or layout still fight the optimization, but worth revisiting because the hot slice is small enough to rewrite incrementally
 
 ### parked

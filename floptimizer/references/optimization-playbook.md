@@ -101,11 +101,13 @@ Common wins:
 - replace a poor-fit dependency with a better one
 - reduce crossings into the dependency with batching or different data shapes
 - contribute or locally carry a narrow upstream patch when the bottleneck is clearly inside the dependency
+- build or port the narrow missing capability locally when the desired fast path is unavailable on the current platform, runtime, or architecture
 
 Guardrails:
 
 - profile the dependency first; do not swap libraries by vibes
 - prefer reversible changes such as config or version bumps before long-lived forks
+- do not treat missing private access as a reason to bypass boundaries; if the capability matters, replace it through a clean, measurable contract instead
 - keep compatibility, correctness, support burden, and upgrade path in the tradeoff analysis
 
 ## Database and Storage Layer

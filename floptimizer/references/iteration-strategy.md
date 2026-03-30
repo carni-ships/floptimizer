@@ -269,6 +269,15 @@ If the local code keeps getting cleaner or faster in isolation but end-to-end pr
 - treat dependency replacement, upgrade, reconfiguration, or upstream contribution as legitimate branches
 - if a path looks blocked only by the current environment, record the hardware or resource change that would make it worth retrying
 
+If a path looks blocked because the needed implementation is unavailable:
+
+- separate "missing capability" from "bad idea"
+- identify the exact contract the missing piece must satisfy
+- ask whether a local shim, adapter, port, or bounded replacement can answer the question
+- do not attempt unauthorized access to private code; replace the capability through accessible contracts and measurable behavior
+- if the substitute is credible, treat it as a real branch rather than a reason to halt
+- use [`self-supplied-capabilities.md`](self-supplied-capabilities.md) when the missing piece is the blocker
+
 If a result looks real but attribution is muddy:
 
 - keep the control baseline stable

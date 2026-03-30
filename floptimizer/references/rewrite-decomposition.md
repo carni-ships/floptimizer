@@ -34,6 +34,7 @@ Common ways to shrink a "major rewrite" into an executable spike:
 
 - extract one hot loop or one serializer instead of rewriting the whole pipeline
 - add an adapter layer so the new implementation can sit behind the old interface
+- rebuild only the missing capability behind the accessible contract instead of treating unavailable code or platform support as a hard stop
 - build a shadow implementation and diff outputs before switching traffic
 - replace one stage while keeping the rest of the old pipeline intact
 - add a benchmark-only implementation to prove the mechanism before integrating fully
