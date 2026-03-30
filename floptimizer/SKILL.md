@@ -1,14 +1,56 @@
 ---
-name: extreme-performance-tuning
+name: floptimizer
 description: |
   Aggressive but safe performance optimization skill for any software stack. Use when the user wants to cut latency, raise throughput, reduce CPU, memory, disk, network, GC, cold-start, binary-size, or build-time costs; profile an application or service; remove hot paths; tune databases, caches, queues, kernels, runtimes, compilers, or deployment topology; or squeeze substantial speedups from code or infrastructure without unsafe changes.
 ---
 
-# Extreme Performance Tuning
+# Floptimizer
 
 Portable skill for Codex, Claude, Grok, and other agents. Keep the workflow agent-agnostic: prefer plain shell commands, standard profilers, reproducible benchmarks, and evidence from the target system over platform-specific magic.
 
 Some bundled helpers were built and tested primarily for local macOS workstation use, then generalized where practical. On Linux, containers, CI runners, remote hosts, or unusual filesystems, treat local-machine helpers such as cleanup, noise checks, and platform probes as best-effort guidance: prefer audit modes first, inspect what the script is about to do, and adjust commands to the host environment before applying cleanup or system-level changes.
+
+> **One Rule:** Measure first. Prove behavior unchanged. Change one major lever at a time. Re-profile after every real win.
+
+## Fast Loop
+
+1. Baseline the real workload.
+2. Profile the dominant hotspot.
+3. Prove the behavior you must preserve.
+4. Pick one lever with strong upside.
+5. Implement and measure again.
+6. Re-profile because bottlenecks shift.
+
+## Fast Scorecard
+
+For a quick next-step choice, score each idea informally:
+
+| Idea | Impact (1-5) | Confidence (1-5) | Next-step cost (1-5) | Quick score |
+|---|---:|---:|---:|---:|
+| Example hotspot fix | 4 | 4 | 2 | 8.0 |
+
+Use `impact * confidence / next-step cost` only as a fast triage aid. For real tradeoffs, fall back to [`references/idea-ranking.md`](references/idea-ranking.md).
+
+## Behavior Proof Checklist
+
+Before keeping a change, write down what stayed true:
+
+- ordering preserved?
+- tie-breaking preserved?
+- precision or numerical tolerance unchanged?
+- randomness or seed behavior unchanged?
+- golden outputs, fixtures, or differential checks still pass?
+
+Use [`references/invariants-and-acceptance.md`](references/invariants-and-acceptance.md) when the proof needs to be more explicit.
+
+## Top-Level Anti-Patterns
+
+- optimizing before profiling
+- bundling unrelated performance changes together
+- trusting a one-off noisy win
+- changing behavior "while we're here"
+- keeping a result without correctness or invariant proof
+- overfitting to one machine or one benchmark point
 
 ## Core Operating Mode
 
@@ -68,6 +110,7 @@ Load these references as needed:
 - [`references/tuning-matrix.md`](references/tuning-matrix.md) for preserving per-environment parameter wins when hardware, firmware, driver, or runtime differences move the optimum.
 - [`references/research-strategy.md`](references/research-strategy.md) for bounded literature review when the bottleneck class is known and recent work may expand the hypothesis set.
 - [`references/novel-hypothesis-generation.md`](references/novel-hypothesis-generation.md) for generating speculative first-principles branches after known patterns and literature have already been mined.
+- [`references/language-quickstart.md`](references/language-quickstart.md) for a fast first profiler command and common hotspot-grep ideas by language.
 - [`references/hardware-acceleration.md`](references/hardware-acceleration.md) for SIMD, GPU, Metal, accelerator, and heterogeneous-compute decisions.
 - [`references/apple-silicon-cpu.md`](references/apple-silicon-cpu.md) for deeper Apple Silicon CPU tuning with NEON, matrix-oriented CPU paths, compiler-inspection workflow, and choosing between Accelerate, intrinsics, and Metal.
 - [`references/optimization-playbook.md`](references/optimization-playbook.md) for aggressive but safe tuning ideas across application, runtime, database, network, OS, and build layers.

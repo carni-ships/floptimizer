@@ -1,4 +1,0 @@
-interface:
-  display_name: "Extreme Performance Tuning"
-  short_description: "Profile-first optimization across the whole stack"
-  default_prompt: "Use $extreme-performance-tuning to diagnose and aggressively optimize this system without unsafe changes."

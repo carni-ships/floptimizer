@@ -1,0 +1,4 @@
+interface:
+  display_name: "Floptimizer"
+  short_description: "Profile-first optimization across the whole stack"
+  default_prompt: "Use $floptimizer to diagnose and aggressively optimize this system without unsafe changes."

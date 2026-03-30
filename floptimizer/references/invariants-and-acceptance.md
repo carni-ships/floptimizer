@@ -26,6 +26,14 @@ Write down the properties that must not break:
 
 This is stronger than "run tests." It tells the agent what a fast-but-bad change would violate.
 
+Quick checklist for many code-path optimizations:
+
+- ordering preserved?
+- tie-breaking preserved?
+- precision or numerical tolerance preserved?
+- RNG seeds or nondeterministic behavior preserved where relevant?
+- golden outputs or differential checks still pass?
+
 ## Acceptance Criteria
 
 Before running a serious experiment, define:

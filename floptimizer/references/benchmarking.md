@@ -39,6 +39,18 @@ Use this file when the task needs a trustworthy benchmark, a fair before/after c
 - Keep a true control baseline and run ablations after bundled wins so you know what actually helped. Use [`ablation-and-controls.md`](ablation-and-controls.md) when attribution is unclear.
 - If the result may be fragile or tuned to one narrow point, run sensitivity checks and record uncertainty. Use [`uncertainty-and-sensitivity.md`](uncertainty-and-sensitivity.md).
 
+## Fast Behavior-Proof Checklist
+
+For many optimizations, a quick written proof is enough to prevent accidental semantic drift:
+
+- ordering preserved?
+- tie-breaking preserved?
+- precision or tolerance still acceptable?
+- RNG seeds or nondeterministic behavior unchanged where required?
+- golden outputs, fixtures, or differential checks still pass?
+
+If the answer is unclear for any of those, do not wave it through as "probably fine." Use [`invariants-and-acceptance.md`](invariants-and-acceptance.md) and add the smallest targeted proof you need.
+
 ## Noise Control
 
 - Run enough iterations to distinguish signal from noise.

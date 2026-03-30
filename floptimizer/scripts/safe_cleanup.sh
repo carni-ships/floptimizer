@@ -37,7 +37,7 @@ Behavior:
   - --summary keeps the audit fast by skipping deeper global cache scans.
   - With --apply and no --include, only removes old skill artifacts:
       * old .bench-captures children under the project root
-      * old temp directories matching extreme-performance-tuning*
+      * old temp directories matching floptimizer*
   - Extra cleanup scopes are opt-in:
       * project-caches
       * package-manager-caches
@@ -178,11 +178,11 @@ collect_project_candidates() {
     "apply: skill-artifacts" \
     "1"
 
-  skill_tmp_kb="$(sum_old_entries_kb "$TEMP_ROOT" 'extreme-performance-tuning*' "$AGE_DAYS")"
+  skill_tmp_kb="$(sum_old_entries_kb "$TEMP_ROOT" 'floptimizer*' "$AGE_DAYS")"
   record_candidate \
     "skill-artifacts" \
     "$skill_tmp_kb" \
-    "$TEMP_ROOT/extreme-performance-tuning* (older than ${AGE_DAYS}d)" \
+    "$TEMP_ROOT/floptimizer* (older than ${AGE_DAYS}d)" \
     "apply: skill-artifacts" \
     "1"
 
@@ -305,7 +305,7 @@ apply_skill_artifacts() {
     rm -rf "$path"
     printf "removed %s\n" "$path" >> "$TMP_ACTIONS"
     removed=1
-  done < <(find "$TEMP_ROOT" -mindepth 1 -maxdepth 1 -name 'extreme-performance-tuning*' -mtime +"$AGE_DAYS" -print 2>/dev/null || true)
+  done < <(find "$TEMP_ROOT" -mindepth 1 -maxdepth 1 -name 'floptimizer*' -mtime +"$AGE_DAYS" -print 2>/dev/null || true)
 
   if [ "$removed" = "0" ]; then
     printf "skill-artifacts: nothing eligible to remove\n" >> "$TMP_ACTIONS"
