@@ -17,6 +17,7 @@ HYPOTHESIS_BRANCH=""
 WRITE_SCOPE=""
 COORDINATION_LEDGER=""
 COMPUTE_SLOT=""
+PROCESS_LABEL=""
 DETACH=0
 INTERNAL_RUNNER=0
 RUN_DIR_OVERRIDE=""
@@ -31,7 +32,7 @@ RUNNER_PID_VALUE=""
 usage() {
   cat <<'EOF'
 Usage:
-  bench_capture.sh [--label NAME] [--output-root DIR] [--skip-noise-check] [--skip-telemetry] [--telemetry-interval SECONDS] [--detach] [--expected-duration TEXT] [--soft-checkpoint TEXT] [--hard-stop TEXT] [--coordination-ledger PATH] [--agent-name NAME] [--hypothesis-branch TEXT] [--write-scope TEXT] [--compute-slot TEXT] -- <command> [args...]
+  bench_capture.sh [--label NAME] [--output-root DIR] [--skip-noise-check] [--skip-telemetry] [--telemetry-interval SECONDS] [--detach] [--process-label LABEL] [--expected-duration TEXT] [--soft-checkpoint TEXT] [--hard-stop TEXT] [--coordination-ledger PATH] [--agent-name NAME] [--hypothesis-branch TEXT] [--write-scope TEXT] [--compute-slot TEXT] -- <command> [args...]
 
 Examples:
   bench_capture.sh --label baseline -- hyperfine 'cargo test --release'
@@ -61,6 +62,25 @@ sanitize_label() {
     | tr '[:upper:]' '[:lower:]' \
     | tr -cs 'a-z0-9._-' '-' \
     | sed 's/^-*//; s/-*$//'
+}
+
+build_process_label() {
+  local raw="${PROCESS_LABEL:-}"
+
+  if [ -z "$raw" ]; then
+    raw="flopt"
+    if [ -n "${AGENT_NAME:-}" ]; then
+      raw="$raw-$AGENT_NAME"
+    fi
+    if [ -n "${LABEL_SLUG:-}" ]; then
+      raw="$raw-$LABEL_SLUG"
+    elif [ -n "${HYPOTHESIS_BRANCH:-}" ]; then
+      raw="$raw-$HYPOTHESIS_BRANCH"
+    fi
+  fi
+
+  raw="$(sanitize_label "$raw")"
+  printf '%s\n' "${raw:0:63}"
 }
 
 now_ms() {
@@ -102,6 +122,7 @@ write_run_state() {
     printf 'run_mode=%q\n' "$RUN_MODE"
     printf 'run_status=%q\n' "$RUN_STATUS"
     printf 'runner_pid=%q\n' "${RUNNER_PID_VALUE:-$$}"
+    printf 'process_label=%q\n' "${PROCESS_LABEL:-}"
     printf 'command_pid=%q\n' "${COMMAND_PID:-}"
     printf 'command_exit_status=%q\n' "${COMMAND_EXIT_STATUS:-not-run}"
     printf 'command=%q\n' "${COMMAND_QUOTED:-}"
@@ -184,6 +205,14 @@ while [ $# -gt 0 ]; do
       DETACH=1
       RUN_MODE="background"
       shift
+      ;;
+    --process-label)
+      if [ $# -lt 2 ]; then
+        echo "--process-label requires a value" >&2
+        exit 2
+      fi
+      PROCESS_LABEL="$2"
+      shift 2
       ;;
     --expected-duration)
       if [ $# -lt 2 ]; then
@@ -310,6 +339,7 @@ LABEL_SLUG=""
 if [ -n "$LABEL" ]; then
   LABEL_SLUG="$(sanitize_label "$LABEL")"
 fi
+PROCESS_LABEL="$(build_process_label)"
 
 RUN_NAME="$TIMESTAMP_SLUG"
 if [ -n "$LABEL_SLUG" ]; then
@@ -487,6 +517,7 @@ cat > "$RUN_DIR/notes.md" <<EOF
 - hypothesis_branch: ${HYPOTHESIS_BRANCH:-none}
 - write_scope: ${WRITE_SCOPE:-none}
 - compute_slot: ${COMPUTE_SLOT:-not-recorded}
+- process_label: ${PROCESS_LABEL:-none}
 
 ## Wait Budget
 
@@ -528,6 +559,14 @@ cat > "$RUN_DIR/notes.md" <<EOF
 ## Revisit Condition
 
 -
+
+## Checkpoint Decision
+
+- checkpoint_type: knowledge | code | both
+- checkpoint_reason:
+- preserved_branch_or_worktree:
+- commit_ref:
+- rerun_or_rebuild_hint:
 
 ## Environment-Specific Tuning Notes
 
@@ -597,7 +636,11 @@ RUNNER_PID_VALUE="$$"
 write_run_state
 
 set +e
-"$@" > "$RUN_DIR/stdout.txt" 2> "$RUN_DIR/stderr.txt" &
+if [ -n "${PROCESS_LABEL:-}" ] && have bash; then
+  bash -lc 'label="$1"; shift; exec -a "$label" "$@"' bash "$PROCESS_LABEL" "$@" > "$RUN_DIR/stdout.txt" 2> "$RUN_DIR/stderr.txt" &
+else
+  "$@" > "$RUN_DIR/stdout.txt" 2> "$RUN_DIR/stderr.txt" &
+fi
 COMMAND_PID=$!
 write_run_state
 wait "$COMMAND_PID"
@@ -641,6 +684,7 @@ fi
   printf 'hostname=%q\n' "$HOSTNAME_VALUE"
   printf 'command=%q\n' "$COMMAND_QUOTED"
   printf 'run_mode=%q\n' "$RUN_MODE"
+  printf 'process_label=%q\n' "${PROCESS_LABEL:-none}"
   printf 'start_utc=%q\n' "$START_UTC"
   printf 'end_utc=%q\n' "$END_UTC"
   printf 'elapsed_ms=%q\n' "$ELAPSED_MS"
@@ -695,6 +739,7 @@ agent_name=${AGENT_NAME:-none}
 hypothesis_branch=${HYPOTHESIS_BRANCH:-none}
 write_scope=${WRITE_SCOPE:-none}
 compute_slot=${COMPUTE_SLOT:-not-recorded}
+process_label=${PROCESS_LABEL:-none}
 git_root=$GIT_ROOT
 git_branch=$GIT_BRANCH
 git_head=$GIT_HEAD

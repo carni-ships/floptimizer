@@ -22,6 +22,7 @@ For each serious attempt, capture:
 - confounders or machine-noise concerns
 - concrete unblockers if the idea failed only because of the current environment or prerequisites
 - revisit condition if the idea is blocked rather than dead
+- checkpoint type and location if the current implementation state was preserved
 
 Keep lightweight tweaks lightweight. Use detailed notes for expensive, surprising, risky, or path-dependent experiments.
 
@@ -35,6 +36,7 @@ Keep lightweight tweaks lightweight. Use detailed notes for expensive, surprisin
 - If it partly worked, what is still blocking the full win?
 - What hardware, resource, dependency, or prerequisite change would make this worth trying again?
 - What would make this worth revisiting later?
+- Should this implementation state be preserved on a branch or worktree before we move on?
 
 ## Suggested Template
 
@@ -51,6 +53,7 @@ why: buffer reuse cut allocation churn, but JSON formatting still dominates tota
 confounders: machine was quiet, warm-state only
 unblockers: binary wire format or pre-serialized cache on the hot path
 revisit_when: if binary wire format is introduced, rerun this path
+checkpoint: knowledge only | code branch perf/serializer-spike at abc123
 ```
 
 ## Heuristics
@@ -60,11 +63,13 @@ revisit_when: if binary wire format is introduced, rerun this path
 - distinguish `lost` from `blocked`
 - if the result was noisy, say so explicitly
 - if the win depended on warm state, say so explicitly
+- if the implementation is expensive to recreate, say where the preserved branch or worktree lives
 
 ## Where To Attach It
 
 - keep short summaries in the branch log
 - keep run-specific reasoning next to the measurement capture
+- preserve significant implementation states on a branch or worktree before overwriting them
 - if the idea looks reusable beyond the current project, also fill in the `Reusable Optimization Trick Candidate` section so it can be harvested into the catalog
 - if the finding looks novel or publication-worthy, also fill in the `Paper-Ready Finding` section so it can be harvested into the paper bundle
 - include the highest-signal kept and rejected ideas in the final report

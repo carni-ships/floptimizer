@@ -80,3 +80,4 @@ scripts/telemetry_summary.sh .bench-captures/20260329T000000Z_baseline/telemetry
 - Prefer conceptual conclusions over machine-specific numbers. "Batches help until GPU memory pressure dominates" is more portable than "batch size 384 is best."
 - When a path is blocked by the current machine, record the unblocker clearly: more VRAM, better cooling, AC power, lower background IO, larger RAM, or a different storage class.
 - If telemetry shows throttling, swap churn, storage saturation, or heavy unrelated work, do not answer by launching even more compute-heavy jobs. Pause measurement, let the machine recover, and spend that time on lower-load work such as reviewing captures, pruning hypotheses, or literature review.
+- Prefer [`resource-gating.md`](resource-gating.md) and [`../scripts/resource_gate.sh`](../scripts/resource_gate.sh) as the admission check before a new heavy run when the machine is shared or already under visible pressure.

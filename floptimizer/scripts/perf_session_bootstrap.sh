@@ -217,6 +217,8 @@ BASELINE_STATE_PATH=""
 BASELINE_RUNNER_PID=""
 BASELINE_RUN_MODE="not-run"
 TELEMETRY_SNAPSHOT_SUMMARY="$SESSION_DIR/telemetry_snapshot_summary.txt"
+RESOURCE_GATE_STATUS="not-run"
+RESOURCE_GATE_REPORT="$SESSION_DIR/resource_gate.txt"
 
 if [ -f "$SCRIPT_DIR/system_snapshot.sh" ]; then
   (
@@ -301,6 +303,26 @@ else
   printf 'tool scout skipped\n' > "$SESSION_DIR/tool_scout.txt"
 fi
 
+if [ -f "$SCRIPT_DIR/resource_gate.sh" ]; then
+  set +e
+  (
+    cd "$ROOT_ABS"
+    bash "$SCRIPT_DIR/resource_gate.sh" --target-path "$ROOT_ABS"
+  ) > "$RESOURCE_GATE_REPORT" 2>&1
+  RESOURCE_GATE_EXIT=$?
+  set -e
+  RESOURCE_GATE_STATUS="$(sed -n 's/^gate_status=//p' "$RESOURCE_GATE_REPORT" | tail -n 1)"
+  if [ -z "$RESOURCE_GATE_STATUS" ]; then
+    case "$RESOURCE_GATE_EXIT" in
+      0) RESOURCE_GATE_STATUS="READY" ;;
+      10) RESOURCE_GATE_STATUS="REVIEW" ;;
+      *) RESOURCE_GATE_STATUS="PAUSE" ;;
+    esac
+  fi
+else
+  printf 'resource gate helper not found at %s\n' "$SCRIPT_DIR/resource_gate.sh" > "$RESOURCE_GATE_REPORT"
+fi
+
 if [ $# -gt 0 ] && [ -f "$SCRIPT_DIR/bench_capture.sh" ]; then
   BENCH_CMD=(bash "$SCRIPT_DIR/bench_capture.sh" --output-root "$SESSION_DIR/captures" --label baseline)
   if [ "$DETACH_BASELINE" = "1" ]; then
@@ -367,6 +389,7 @@ cat > "$SESSION_DIR/starter-report.md" <<EOF
 - repo_root: $ROOT_ABS
 - session_dir: $SESSION_DIR
 - machine_noise_status: $NOISE_STATUS
+- resource_gate_status: ${RESOURCE_GATE_STATUS:-not-run}
 - baseline_exit_status: $BASELINE_EXIT_STATUS
 - baseline_run_mode: ${BASELINE_RUN_MODE:-not-run}
 - coordination_ledger: ${COORDINATION_LEDGER:-none}
@@ -377,6 +400,7 @@ cat > "$SESSION_DIR/starter-report.md" <<EOF
 - telemetry_snapshot: $SESSION_DIR/telemetry_snapshot.txt
 - telemetry_snapshot_summary: $TELEMETRY_SNAPSHOT_SUMMARY
 - machine_noise: $SESSION_DIR/machine_noise.txt
+- resource_gate: $RESOURCE_GATE_REPORT
 - tool_scout: $SESSION_DIR/tool_scout.txt
 - baseline_capture_console: $SESSION_DIR/baseline_capture_console.txt
 - baseline_capture_dir: ${BASELINE_CAPTURE_DIR:-not-run}
@@ -490,6 +514,14 @@ cat > "$SESSION_DIR/starter-report.md" <<EOF
 
 -
 
+## Checkpoint Decision
+
+- checkpoint_type: knowledge | code | both
+- checkpoint_reason:
+- preserved_branch_or_worktree:
+- commit_ref:
+- rerun_or_rebuild_hint:
+
 ## Skill Feedback
 
 - guidance_that_helped:
@@ -508,6 +540,8 @@ EOF
   printf 'noise_exit_status=%q\n' "$NOISE_EXIT_STATUS"
   printf 'telemetry_snapshot=%q\n' "$SESSION_DIR/telemetry_snapshot.txt"
   printf 'telemetry_snapshot_summary=%q\n' "$TELEMETRY_SNAPSHOT_SUMMARY"
+  printf 'resource_gate_report=%q\n' "$RESOURCE_GATE_REPORT"
+  printf 'resource_gate_status=%q\n' "${RESOURCE_GATE_STATUS:-not-run}"
   printf 'baseline_exit_status=%q\n' "$BASELINE_EXIT_STATUS"
   printf 'baseline_capture_dir=%q\n' "${BASELINE_CAPTURE_DIR:-}"
   printf 'baseline_summary=%q\n' "${BASELINE_SUMMARY:-}"

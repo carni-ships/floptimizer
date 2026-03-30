@@ -56,6 +56,8 @@ Keep it compact:
 - source type such as literature-derived, exemplar-derived, or first-principles speculative
 - evidence so far
 - link or pointer to detailed experiment notes when they exist
+- preserved_branch_or_worktree when the implementation state is worth keeping
+- checkpoint_ref if a meaningful commit or checkpoint exists
 - next trigger for revisiting it
 
 ## Good Status Meanings
@@ -104,8 +106,9 @@ This keeps the process persistent without becoming endless wandering.
 1. Pick one active branch.
 2. Run the smallest fair experiment.
 3. Update the branch state.
-4. If blocked, write the unblock condition explicitly.
-5. Periodically scan blocked branches to see whether recent work changed their prerequisites.
+4. If the current implementation is valuable, checkpoint or preserve it before moving on.
+5. If blocked, write the unblock condition explicitly.
+6. Periodically scan blocked branches to see whether recent work changed their prerequisites.
 
 If multiple agents are working in parallel:
 

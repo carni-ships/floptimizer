@@ -14,6 +14,8 @@ last_updated:
   hypothesis_branch:
   status: active | blocked | parked | done
   write_scope:
+  last_checkpoint_at:
+  preserved_branch_or_worktree:
   notes:
 
 ## Write Claims
@@ -28,9 +30,13 @@ last_updated:
 
 - holder:
   task:
+  process_label:
   run_mode: foreground | background | detached
   pid_or_session:
+  state_path:
   logs:
+  resource_gate_checked_at:
+  resource_gate_status:
   expected_duration:
   soft_checkpoint:
   hard_stop:

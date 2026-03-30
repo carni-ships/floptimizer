@@ -113,7 +113,7 @@ ps -axo $PS_FORMAT 2>/dev/null | awk \
     reason = ""
     if (cpu >= cpu_t) reason = reason "high-cpu "
     if (mem >= mem_t) reason = reason "high-mem "
-    if (cmd ~ /(codex|claude|cargo|rustc|clang|gcc|cc1|go|pytest|jest|pnpm|npm|yarn|bun|docker|podman|qemu|xcodebuild|swift|node|java|gradle|mvn|ray|chrome|firefox|safari|backupd|mdworker|mds|Spotlight)/ && cpu >= bg_cpu_t) {
+    if (cmd ~ /(flopt|floptimizer|codex|claude|cargo|rustc|clang|gcc|cc1|go|pytest|jest|pnpm|npm|yarn|bun|docker|podman|qemu|xcodebuild|swift|node|java|gradle|mvn|ray|chrome|firefox|safari|backupd|mdworker|mds|Spotlight)/ && cpu >= bg_cpu_t) {
       reason = reason "active-work "
     }
 

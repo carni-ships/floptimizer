@@ -38,6 +38,7 @@ Good setup when available:
 - one branch or worktree per agent
 - a narrow write-ownership claim
 - one shared compute slot for heavy builds, profiles, or benchmarks
+- one resource gate check before each new heavy launch
 
 ## Ownership Model
 
@@ -48,6 +49,7 @@ Each active agent should claim:
 - experiment branch or hypothesis
 - files or modules currently owned for edits
 - current status
+- last meaningful checkpoint or preserved branch when relevant
 
 Claims should be:
 
@@ -85,6 +87,7 @@ When the compute slot is occupied:
 - update coordination notes
 
 A background job still occupies the compute slot until it exits or is terminated. Detached execution frees attention, not machine capacity.
+Before starting a new heavy job, run [`resource-gating.md`](resource-gating.md) or [`../scripts/resource_gate.sh`](../scripts/resource_gate.sh). A free compute slot is not enough if the machine itself is already saturated.
 
 ## Parallel Search Pattern
 
@@ -114,8 +117,11 @@ Bad candidate split:
 - Keep a live claim ledger outside of git history assumptions.
 - Do not edit files claimed by another active agent without re-coordination.
 - Do not launch heavy compute jobs without claiming the compute slot.
+- Do not launch a new heavy job if the latest resource gate says `PAUSE`.
+- Record process label, PID or session handle, state path, and latest gate status for heavy jobs. Treat process-list visibility as best-effort; the ledger remains the source of truth.
 - Keep the compute slot claimed for background or detached jobs until the process actually ends.
 - Record blocked, won, lost, and active experiment branches in one shared place.
+- After meaningful results, checkpoint the branch state and, for significant builds, preserve them on a branch or worktree instead of leaving them only in a dirty workspace.
 - If claims overlap, serialize the work rather than hoping merge cleanup will be cheap.
 - Release claims quickly when you stop actively working that area.
 
