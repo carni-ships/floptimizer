@@ -126,6 +126,17 @@ echo
 echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo "target_path=$TARGET_PATH"
 echo "gate_status=$GATE_STATUS"
+case "$GATE_STATUS" in
+  READY)
+    echo "recommended_work_mode=heavy-ok"
+    ;;
+  REVIEW)
+    echo "recommended_work_mode=prefer-non-competing"
+    ;;
+  PAUSE)
+    echo "recommended_work_mode=non-competing"
+    ;;
+esac
 echo "noise_status=$NOISE_STATUS"
 echo "telemetry_status=$TELEMETRY_STATUS"
 echo "noise_report=$NOISE_REPORT"
@@ -142,10 +153,10 @@ case "$GATE_STATUS" in
     echo "recommendation=Machine looks healthy enough for a new heavy run."
     ;;
   REVIEW)
-    echo "recommendation=Prefer caution: the machine is not clearly maxed out, but pressure signals deserve review before stacking more load."
+    echo "recommendation=Prefer caution: the machine is not clearly maxed out, but pressure signals deserve review before stacking more load. Prefer non-competing mode unless there is a clear reason to spend more machine budget."
     ;;
   PAUSE)
-    echo "recommendation=Do not launch a new heavy run yet. Pause and switch to non-competing work until the machine settles."
+    echo "recommendation=Do not launch a new heavy run yet. Enter non-competing mode and switch to coding, review, planning, or literature work until the machine settles."
     ;;
 esac
 

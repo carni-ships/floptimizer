@@ -39,6 +39,7 @@ Good setup when available:
 - a narrow write-ownership claim
 - one shared compute slot for heavy builds, profiles, or benchmarks
 - one resource gate check before each new heavy launch
+- one explicit non-competing mode when user intent or machine load says "no new heavy jobs"
 
 ## Ownership Model
 
@@ -85,6 +86,7 @@ When the compute slot is occupied:
 - prepare next experiments
 - review earlier findings
 - update coordination notes
+- stay in non-competing mode unless the user explicitly reprioritizes
 
 A background job still occupies the compute slot until it exits or is terminated. Detached execution frees attention, not machine capacity.
 Before starting a new heavy job, run [`resource-gating.md`](resource-gating.md) or [`../scripts/resource_gate.sh`](../scripts/resource_gate.sh). A free compute slot is not enough if the machine itself is already saturated.
@@ -118,6 +120,7 @@ Bad candidate split:
 - Do not edit files claimed by another active agent without re-coordination.
 - Do not launch heavy compute jobs without claiming the compute slot.
 - Do not launch a new heavy job if the latest resource gate says `PAUSE`.
+- If the user asked for no fresh heavy computation, keep all agents in non-competing mode until that restriction is lifted.
 - Record process label, PID or session handle, state path, and latest gate status for heavy jobs. Treat process-list visibility as best-effort; the ledger remains the source of truth.
 - Keep the compute slot claimed for background or detached jobs until the process actually ends.
 - Record blocked, won, lost, and active experiment branches in one shared place.

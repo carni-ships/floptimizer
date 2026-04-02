@@ -82,6 +82,13 @@ Use the waiting window this way:
 
 The point is to match effort to the cognitive difficulty of the next useful move, not to the CPU usage of the current command.
 
+Non-competing mode and reasoning budget are separate axes:
+
+- non-competing mode answers "should we add more machine load right now?"
+- reasoning budget answers "how much thinking does the next step deserve?"
+
+That means non-competing mode may still be a good time for deep analysis.
+
 ## Guardrails
 
 - Do not spend high effort trying to explain results from an obviously noisy or contaminated run before fixing the measurement conditions.

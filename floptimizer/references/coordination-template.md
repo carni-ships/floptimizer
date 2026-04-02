@@ -6,6 +6,7 @@ Use this as a lightweight shared ledger when multiple agents are working in para
 # Agent Coordination Ledger
 
 last_updated:
+system_work_mode: heavy-ok | prefer-non-competing | non-competing
 
 ## Active Agents
 
@@ -13,6 +14,7 @@ last_updated:
   branch_or_worktree:
   hypothesis_branch:
   status: active | blocked | parked | done
+  work_mode: heavy-ok | non-competing
   write_scope:
   last_checkpoint_at:
   preserved_branch_or_worktree:

@@ -150,7 +150,7 @@ if [ -s "$TMP_NOISE" ]; then
   cat "$TMP_NOISE"
   echo
   echo "status=NOISY"
-  echo "recommendation=Pause new compute-heavy runs until unrelated work settles. Use the time for lower-load analysis such as reviewing captures, refining hypotheses, or literature review, then re-run benchmarks or profiles on a quieter machine state."
+  echo "recommendation=Pause new compute-heavy runs until unrelated work settles. Enter non-competing mode and use the time for code review, low-risk editing, refining hypotheses, reviewing captures, or literature review, then re-run benchmarks or profiles on a quieter machine state."
   exit 1
 fi
 

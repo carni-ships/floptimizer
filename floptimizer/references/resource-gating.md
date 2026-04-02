@@ -13,6 +13,8 @@ Admission requires both:
 
 If either condition fails, pause new heavy work and switch to non-competing work.
 
+Use [`non-competing-mode.md`](non-competing-mode.md) as the canonical guide for what that mode allows and when to leave it.
+
 ## What To Check Before Launching
 
 Check:
@@ -28,12 +30,13 @@ The bundled helper [`../scripts/resource_gate.sh`](../scripts/resource_gate.sh) 
 ## Gate Outcomes
 
 - `READY`: okay to launch the next heavy run
-- `REVIEW`: pressure signals deserve caution; avoid stacking more load casually
-- `PAUSE`: do not launch a new heavy run yet
+- `REVIEW`: pressure signals deserve caution; prefer non-competing mode unless you have a clear reason to spend the remaining machine budget
+- `PAUSE`: do not launch a new heavy run yet; enter non-competing mode
 
 When the gate is not `READY`, do lower-load work instead:
 
 - review earlier captures
+- review code and prepare low-risk edits
 - refine hypotheses
 - update notes
 - inspect dependencies
