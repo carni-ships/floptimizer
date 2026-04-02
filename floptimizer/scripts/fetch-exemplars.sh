@@ -13,6 +13,7 @@ REPOS=(
   "https://github.com/microsoft/mimalloc"
   "https://github.com/google/tcmalloc"
   "https://github.com/zkonduit/metal-msm-gpu-acceleration"
+  "https://github.com/carni-ships/zkMetal"
   "https://github.com/Digital-Defiance/node-zk-accelerate"
   "https://github.com/ingonyama-zk/metal-poc"
   "https://github.com/philipturner/metal-fft"

@@ -10,6 +10,14 @@ Use this file when the optimization path is close to Apple Silicon CPU tuning, M
 
 ## Apple Silicon, Metal, and Consumer GPU Offload
 
+### zkMetal
+
+- Repo: `https://github.com/carni-ships/zkMetal`
+- Role: local case study / emerging exemplar, not yet a broad gold-standard repo
+- Consult when: Apple Silicon ZK kernels, Swift plus Metal split architectures, GPU buffer reuse, or end-to-end proving primitive acceleration are relevant.
+- Learn from it: keeping field elements in Montgomery form on-device, fused multi-round kernels, four-step FFT decomposition, buffer caching, and a clean split between host orchestration and Metal shader kernels.
+- Watch out for: over-trusting README benchmark numbers or treating a young, platform-specific repo as proof that the same structure is optimal for every GPU stack or proving system.
+
 ### metal-msm-gpu-acceleration
 
 - Repo: `https://github.com/zkonduit/metal-msm-gpu-acceleration`

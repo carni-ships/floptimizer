@@ -225,6 +225,7 @@ When the workload resembles large, data-parallel kernels on Apple hardware, thes
 - [Apple Research: Deploying Transformers on the Apple Neural Engine](https://machinelearning.apple.com/research/neural-engine-transformers)
 - [EZKL Metal MSM acceleration](https://github.com/zkonduit/metal-msm-gpu-acceleration)
 - [Mopro / PSE Metal MSM v2 write-up](https://pse.dev/blog/mopro-metal-msm-v2)
+- [`zkMetal`](https://github.com/carni-ships/zkMetal)
 - [`node-zk-accelerate`](https://github.com/Digital-Defiance/node-zk-accelerate)
 - [`metal-poc`](https://github.com/ingonyama-zk/metal-poc)
 - [`metal-fft`](https://github.com/philipturner/metal-fft)
@@ -234,6 +235,7 @@ These are especially useful for understanding:
 - unified-memory tradeoffs
 - threadgroup memory tiling
 - barrier placement
+- host-layer plus shader-layer split design
 - Rust or Node interop with Metal
 - batching strategies for arithmetic-heavy kernels
 

@@ -38,7 +38,7 @@ Use this file after the bottleneck class is known and you want proven design ide
 - Distributed proving or embarrassingly parallel cluster bottleneck: start with `DIZK`, `Ray`, then compare against the hardware-accelerated local-kernel references
 - Blockchain execution or validator bottleneck: start with `Firedancer`, `Agave`, `Reth`, `Erigon`, `Sui`, `Aptos`
 - Apple Silicon CPU intrinsic bottleneck: start with `amx-benchmarks`, `simdjson`, the Apple CPU optimization guide, then the Dougall J NEON write-up
-- Apple Silicon or Metal offload bottleneck: start with `metal-msm-gpu-acceleration`, `metal-poc`, `metal-fft`, `node-zk-accelerate`
+- Apple Silicon or Metal offload bottleneck: start with `zkMetal` for a Swift-plus-Metal case study, then compare against `metal-msm-gpu-acceleration`, `metal-poc`, `metal-fft`, and `node-zk-accelerate`
 
 ## Suggested Study Order
 
