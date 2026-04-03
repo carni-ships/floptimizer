@@ -248,7 +248,7 @@ Use this triage order:
 
 If the class is unclear, open [`references/bottleneck-map.md`](references/bottleneck-map.md) and use the symptom-to-diagnosis table.
 
-Before committing to a deep optimization path, open [`references/ceiling-analysis.md`](references/ceiling-analysis.md) and estimate the maximum plausible upside. If the realistic ceiling is too small, change direction early.
+Before committing to a deep optimization path, open [`references/ceiling-analysis.md`](references/ceiling-analysis.md) and estimate both the maximum plausible upside and the practical floor for that slice. If the realistic ceiling is too small or the remaining headroom to the floor is already narrow, change direction early.
 Then open [`references/idea-ranking.md`](references/idea-ranking.md) so the next experiment is chosen by end-to-end value rather than novelty.
 
 ## Phase 4: Attack Order

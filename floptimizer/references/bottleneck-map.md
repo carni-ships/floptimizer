@@ -28,6 +28,7 @@ Use this file when the slowdown source is not obvious. Start from the symptom, t
 | p99 much worse than p50 | Queueing / tail amplification | End-to-end tracing, per-stage histograms, pool saturation |
 | One benchmark point looks great but throughput or latency falls apart as load rises | Saturation / operating-region problem | Concurrency sweep, batch-size sweep, queue depth, pool saturation |
 | A hot slice is real but probably too small to hit the target | Ceiling too low | Amdahl-style upper bound, stage timing, likely next bottleneck |
+| A hot slice still shows up, but repeated local tuning barely moves it anymore | Near practical floor | floor estimate, bytes-moved or ops lower bound, stronger exemplar comparison, higher-layer redesign check |
 | Throughput decays only after sustained load or on battery power | Thermal / power throttling | thermal telemetry, power-source mode, clock or frequency hints |
 | GPU path wins briefly, then stalls or regresses near larger inputs | Device-memory or offload limit | GPU memory telemetry, copy volume, batch sweep, host-device sync trace |
 | GPU is in use but wall time ≈ sum of individual kernel times | Serial GPU dispatch | Command buffer encoding trace, dispatch pattern audit, pipeline utilization |

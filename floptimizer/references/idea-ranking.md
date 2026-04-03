@@ -8,6 +8,7 @@ Score each idea informally across these dimensions:
 
 - expected end-to-end impact
 - ceiling size
+- remaining headroom to the practical floor
 - confidence
 - validation speed
 - enablement value
@@ -24,6 +25,12 @@ How much could this move the real primary metric in the target operating region?
 ### Ceiling size
 
 Even if the idea works, is the upside large enough to matter?
+
+### Remaining headroom to the practical floor
+
+How much plausible room is actually left in this slice before you hit the fastest believable version of the required work?
+
+This keeps the agent from over-investing in a slice that still looks hot but is already close to its practical floor.
 
 ### Confidence
 
@@ -69,6 +76,7 @@ Prefer ideas that are:
 Delay ideas that are:
 
 - expensive rewrites with low ceiling
+- local tuning on slices that are already near their practical floor
 - beautiful micro-optimizations on tiny slices
 - risky infrastructure changes without strong evidence
 - speculative tricks that are hard to measure fairly
