@@ -13,6 +13,7 @@ Knowledge checkpoints preserve what was learned.
 Code checkpoints preserve a meaningful implementation state.
 
 Do both after serious results. A negative result is still checkpoint-worthy if it changes the search.
+Also checkpoint before risky changes when the last known-good state would otherwise be easy to lose.
 
 ## Knowledge Checkpoints
 
@@ -37,12 +38,23 @@ Good candidates:
 - a platform-specific prototype worth revisiting later
 - an enabler branch that unblocks several later directions
 - a negative result that required substantial engineering and may become a future comparison point
+- a correct but non-winning build that may become useful again with another pass or different prerequisites
 
 Good code checkpoints are usually:
 
 - a dedicated git branch or worktree
 - one or more intentional commits
 - a note in the branch log or coordination ledger pointing to that branch
+
+## Pre-Risk Rollback Checkpoints
+
+Before a risky refactor, invasive optimization, or boundary change:
+
+- checkpoint the last known-good implementation if losing it would make rollback slow or uncertain
+- record where that rollback point lives
+- treat that preserved state as the recovery point if the new branch regresses performance, correctness, or operability
+
+This is different from preserving the new branch. One checkpoint protects the stable baseline; the other preserves an exploratory implementation state.
 
 ## Default Rule
 
@@ -63,8 +75,18 @@ Preserve the current build on its own branch or worktree when:
 - it may serve as a rollback point
 - it may serve as a correctness oracle
 - it may become useful again if prerequisites change
+- it is correct but not a net improvement yet, and a later pass may still unlock it
+- it demonstrates a useful mechanism even if the current surrounding code prevents the full win
 
 Do not throw away a meaningful build just because it is not today’s winner.
+
+Correct-but-non-winning builds should usually be marked as parked, not discarded.
+They are especially worth preserving when:
+
+- the implementation is expensive to recreate
+- the code is clean enough to iterate on later
+- the idea is still believable but not yet amortized, integrated, or tuned
+- another branch may later remove the blocker that kept it from winning
 
 ## When Notes Are Enough
 
@@ -83,6 +105,9 @@ When checkpointing, record:
 - checkpoint_type: knowledge | code | both
 - branch_status
 - checkpoint_reason
+- preservation_class: rollback-baseline | winner | fallback | oracle | non-winning-correct | enabler | comparison-point
+- previous_good_branch_or_worktree
+- previous_good_commit_ref
 - preserved_branch_or_worktree
 - commit_ref if any
 - rerun_or_rebuild_hint

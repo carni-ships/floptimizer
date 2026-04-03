@@ -518,6 +518,9 @@ cat > "$SESSION_DIR/starter-report.md" <<EOF
 
 - checkpoint_type: knowledge | code | both
 - checkpoint_reason:
+- preservation_class: rollback-baseline | winner | fallback | oracle | non-winning-correct | enabler | comparison-point
+- previous_good_branch_or_worktree:
+- previous_good_commit_ref:
 - preserved_branch_or_worktree:
 - commit_ref:
 - rerun_or_rebuild_hint:

@@ -37,6 +37,8 @@ Keep lightweight tweaks lightweight. Use detailed notes for expensive, surprisin
 - What hardware, resource, dependency, or prerequisite change would make this worth trying again?
 - What would make this worth revisiting later?
 - Should this implementation state be preserved on a branch or worktree before we move on?
+- Should the last known-good state be checkpointed before we keep pushing this direction?
+- If this build is correct but not winning, should it be parked and preserved for later?
 
 ## Suggested Template
 
@@ -54,6 +56,7 @@ confounders: machine was quiet, warm-state only
 unblockers: binary wire format or pre-serialized cache on the hot path
 revisit_when: if binary wire format is introduced, rerun this path
 checkpoint: knowledge only | code branch perf/serializer-spike at abc123
+preservation_class: winner | non-winning-correct | oracle | fallback | comparison-point
 ```
 
 ## Heuristics
@@ -64,12 +67,14 @@ checkpoint: knowledge only | code branch perf/serializer-spike at abc123
 - if the result was noisy, say so explicitly
 - if the win depended on warm state, say so explicitly
 - if the implementation is expensive to recreate, say where the preserved branch or worktree lives
+- if the previous known-good state matters for rollback, record where that rollback point lives too
 
 ## Where To Attach It
 
 - keep short summaries in the branch log
 - keep run-specific reasoning next to the measurement capture
 - preserve significant implementation states on a branch or worktree before overwriting them
+- preserve correct but non-winning implementations when they are plausible future branches rather than one-off dead ends
 - if the idea looks reusable beyond the current project, also fill in the `Reusable Optimization Trick Candidate` section so it can be harvested into the catalog
 - if the finding looks novel or publication-worthy, also fill in the `Paper-Ready Finding` section so it can be harvested into the paper bundle
 - include the highest-signal kept and rejected ideas in the final report
