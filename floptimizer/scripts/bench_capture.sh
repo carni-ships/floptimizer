@@ -18,6 +18,8 @@ WRITE_SCOPE=""
 COORDINATION_LEDGER=""
 COMPUTE_SLOT=""
 PROCESS_LABEL=""
+CAMPAIGN_FILE=""
+CAMPAIGN_LEDGER=""
 DETACH=0
 INTERNAL_RUNNER=0
 RUN_DIR_OVERRIDE=""
@@ -26,13 +28,15 @@ RUN_STATUS="preparing"
 RUN_STATE_PATH=""
 TERMINATE_SCRIPT_PATH=""
 DETACHED_LAUNCH_LOG=""
+CAMPAIGN_ENTRY_PATH=""
+CAMPAIGN_APPEND_STATUS="skipped"
 COMMAND_EXIT_STATUS="not-run"
 RUNNER_PID_VALUE=""
 
 usage() {
   cat <<'EOF'
 Usage:
-  bench_capture.sh [--label NAME] [--output-root DIR] [--skip-noise-check] [--skip-telemetry] [--telemetry-interval SECONDS] [--detach] [--process-label LABEL] [--expected-duration TEXT] [--soft-checkpoint TEXT] [--hard-stop TEXT] [--coordination-ledger PATH] [--agent-name NAME] [--hypothesis-branch TEXT] [--write-scope TEXT] [--compute-slot TEXT] -- <command> [args...]
+  bench_capture.sh [--label NAME] [--output-root DIR] [--skip-noise-check] [--skip-telemetry] [--telemetry-interval SECONDS] [--detach] [--process-label LABEL] [--expected-duration TEXT] [--soft-checkpoint TEXT] [--hard-stop TEXT] [--coordination-ledger PATH] [--campaign-file PATH] [--campaign-ledger PATH] [--agent-name NAME] [--hypothesis-branch TEXT] [--write-scope TEXT] [--compute-slot TEXT] -- <command> [args...]
 
 Examples:
   bench_capture.sh --label baseline -- hyperfine 'cargo test --release'
@@ -47,6 +51,7 @@ Creates a timestamped run directory and stores:
   - broad system telemetry captured during the run
   - telemetry summary
   - experiment notes template
+  - campaign append marker
   - stdout/stderr
   - timing and exit status
   - run_state.env for detached supervision
@@ -62,6 +67,16 @@ sanitize_label() {
     | tr '[:upper:]' '[:lower:]' \
     | tr -cs 'a-z0-9._-' '-' \
     | sed 's/^-*//; s/-*$//'
+}
+
+resolve_path() {
+  local input="$1"
+
+  if [[ "$input" = /* ]]; then
+    printf '%s\n' "$input"
+  else
+    printf '%s\n' "$PWD/$input"
+  fi
 }
 
 build_process_label() {
@@ -132,6 +147,10 @@ write_run_state() {
     printf 'notes_path=%q\n' "$RUN_DIR/notes.md"
     printf 'summary_path=%q\n' "$RUN_DIR/summary.txt"
     printf 'capture_env_path=%q\n' "$RUN_DIR/capture.env"
+    printf 'campaign_file=%q\n' "${CAMPAIGN_FILE:-none}"
+    printf 'campaign_ledger=%q\n' "${CAMPAIGN_LEDGER:-none}"
+    printf 'campaign_append_status=%q\n' "${CAMPAIGN_APPEND_STATUS:-skipped}"
+    printf 'campaign_entry_path=%q\n' "${CAMPAIGN_ENTRY_PATH:-}"
     printf 'rerun_path=%q\n' "$RUN_DIR/rerun.sh"
     printf 'terminate_script=%q\n' "${TERMINATE_SCRIPT_PATH:-}"
     printf 'detached_launch_log=%q\n' "${DETACHED_LAUNCH_LOG:-}"
@@ -244,6 +263,22 @@ while [ $# -gt 0 ]; do
         exit 2
       fi
       COORDINATION_LEDGER="$2"
+      shift 2
+      ;;
+    --campaign-file)
+      if [ $# -lt 2 ]; then
+        echo "--campaign-file requires a value" >&2
+        exit 2
+      fi
+      CAMPAIGN_FILE="$2"
+      shift 2
+      ;;
+    --campaign-ledger)
+      if [ $# -lt 2 ]; then
+        echo "--campaign-ledger requires a value" >&2
+        exit 2
+      fi
+      CAMPAIGN_LEDGER="$2"
       shift 2
       ;;
     --agent-name)
@@ -363,9 +398,33 @@ HOSTNAME_VALUE="$(hostname 2>/dev/null || printf 'unknown\n')"
 GIT_ROOT="$(git_field "not-a-git-repo" git rev-parse --show-toplevel)"
 GIT_BRANCH="$(git_field "detached-or-unavailable" git rev-parse --abbrev-ref HEAD)"
 GIT_HEAD="$(git_field "unavailable" git rev-parse HEAD)"
+
+if [ -n "$CAMPAIGN_FILE" ]; then
+  CAMPAIGN_FILE="$(resolve_path "$CAMPAIGN_FILE")"
+fi
+if [ -n "$CAMPAIGN_LEDGER" ]; then
+  CAMPAIGN_LEDGER="$(resolve_path "$CAMPAIGN_LEDGER")"
+fi
+if [ -z "$CAMPAIGN_FILE" ] || [ -z "$CAMPAIGN_LEDGER" ]; then
+  CAMPAIGN_ROOT="$PWD"
+  if [ "$GIT_ROOT" != "not-a-git-repo" ]; then
+    CAMPAIGN_ROOT="$GIT_ROOT"
+  fi
+  if [ -z "$CAMPAIGN_FILE" ] && [ -f "$CAMPAIGN_ROOT/.perf-campaign/campaign.md" ]; then
+    CAMPAIGN_FILE="$CAMPAIGN_ROOT/.perf-campaign/campaign.md"
+  fi
+  if [ -z "$CAMPAIGN_LEDGER" ] && [ -f "$CAMPAIGN_ROOT/.perf-campaign/results.tsv" ]; then
+    CAMPAIGN_LEDGER="$CAMPAIGN_ROOT/.perf-campaign/results.tsv"
+  fi
+fi
+if [ -n "$CAMPAIGN_FILE" ] || [ -n "$CAMPAIGN_LEDGER" ]; then
+  CAMPAIGN_APPEND_STATUS="pending"
+fi
+
 RUN_STATE_PATH="$RUN_DIR/run_state.env"
 TERMINATE_SCRIPT_PATH="$RUN_DIR/terminate.sh"
 DETACHED_LAUNCH_LOG="$RUN_DIR/detached_runner.log"
+CAMPAIGN_ENTRY_PATH="$RUN_DIR/campaign-entry.env"
 GIT_DIRTY="unknown"
 if have git && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   if [ -n "$(git status --porcelain 2>/dev/null || true)" ]; then
@@ -423,6 +482,12 @@ if [ "$DETACH" = "1" ] && [ "$INTERNAL_RUNNER" != "1" ]; then
   fi
   if [ -n "$COORDINATION_LEDGER" ]; then
     RUNNER_CMD+=(--coordination-ledger "$COORDINATION_LEDGER")
+  fi
+  if [ -n "$CAMPAIGN_FILE" ]; then
+    RUNNER_CMD+=(--campaign-file "$CAMPAIGN_FILE")
+  fi
+  if [ -n "$CAMPAIGN_LEDGER" ]; then
+    RUNNER_CMD+=(--campaign-ledger "$CAMPAIGN_LEDGER")
   fi
   if [ -n "$AGENT_NAME" ]; then
     RUNNER_CMD+=(--agent-name "$AGENT_NAME")
@@ -518,6 +583,13 @@ cat > "$RUN_DIR/notes.md" <<EOF
 - write_scope: ${WRITE_SCOPE:-none}
 - compute_slot: ${COMPUTE_SLOT:-not-recorded}
 - process_label: ${PROCESS_LABEL:-none}
+
+## Campaign Context
+
+- campaign_file: ${CAMPAIGN_FILE:-none}
+- campaign_ledger: ${CAMPAIGN_LEDGER:-none}
+- campaign_append_status: ${CAMPAIGN_APPEND_STATUS:-skipped}
+- campaign_entry_path: $CAMPAIGN_ENTRY_PATH
 
 ## Wait Budget
 
@@ -632,6 +704,14 @@ cat > "$RUN_DIR/notes.md" <<EOF
 - candidate_update:
 EOF
 
+{
+  printf 'campaign_file=%q\n' "${CAMPAIGN_FILE:-none}"
+  printf 'campaign_ledger=%q\n' "${CAMPAIGN_LEDGER:-none}"
+  printf 'campaign_append_status=%q\n' "${CAMPAIGN_APPEND_STATUS:-skipped}"
+  printf 'campaign_entry_path=%q\n' "$CAMPAIGN_ENTRY_PATH"
+  printf 'capture_dir=%q\n' "$RUN_DIR"
+} > "$CAMPAIGN_ENTRY_PATH"
+
 START_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 START_MS="$(now_ms)"
 RUN_STATUS="running"
@@ -705,6 +785,10 @@ fi
   printf 'soft_checkpoint=%q\n' "${SOFT_CHECKPOINT:-not-recorded}"
   printf 'hard_stop=%q\n' "${HARD_STOP:-not-recorded}"
   printf 'coordination_ledger=%q\n' "${COORDINATION_LEDGER:-none}"
+  printf 'campaign_file=%q\n' "${CAMPAIGN_FILE:-none}"
+  printf 'campaign_ledger=%q\n' "${CAMPAIGN_LEDGER:-none}"
+  printf 'campaign_append_status=%q\n' "${CAMPAIGN_APPEND_STATUS:-skipped}"
+  printf 'campaign_entry_path=%q\n' "$CAMPAIGN_ENTRY_PATH"
   printf 'agent_name=%q\n' "${AGENT_NAME:-none}"
   printf 'hypothesis_branch=%q\n' "${HYPOTHESIS_BRANCH:-none}"
   printf 'write_scope=%q\n' "${WRITE_SCOPE:-none}"
@@ -738,6 +822,10 @@ expected_duration=${EXPECTED_DURATION:-not-recorded}
 soft_checkpoint=${SOFT_CHECKPOINT:-not-recorded}
 hard_stop=${HARD_STOP:-not-recorded}
 coordination_ledger=${COORDINATION_LEDGER:-none}
+campaign_file=${CAMPAIGN_FILE:-none}
+campaign_ledger=${CAMPAIGN_LEDGER:-none}
+campaign_append_status=${CAMPAIGN_APPEND_STATUS:-skipped}
+campaign_entry_path=$CAMPAIGN_ENTRY_PATH
 agent_name=${AGENT_NAME:-none}
 hypothesis_branch=${HYPOTHESIS_BRANCH:-none}
 write_scope=${WRITE_SCOPE:-none}
@@ -756,6 +844,7 @@ artifacts:
 - capture.env
 - summary.txt
 - run_state.env
+- campaign-entry.env
 - notes.md
 - stdout.txt
 - stderr.txt
@@ -778,6 +867,11 @@ printf 'noise_status=%s\n' "$NOISE_STATUS"
 printf 'telemetry_status=%s\n' "$TELEMETRY_STATUS"
 printf 'telemetry=%s\n' "$RUN_DIR/telemetry.txt"
 printf 'telemetry_summary=%s\n' "$TELEMETRY_SUMMARY_PATH"
+if [ -n "$CAMPAIGN_LEDGER" ]; then
+  printf 'campaign_ledger=%s\n' "$CAMPAIGN_LEDGER"
+fi
+printf 'campaign_entry_path=%s\n' "$CAMPAIGN_ENTRY_PATH"
+printf 'campaign_append_status=%s\n' "${CAMPAIGN_APPEND_STATUS:-skipped}"
 printf 'notes=%s\n' "$RUN_DIR/notes.md"
 printf 'summary=%s\n' "$RUN_DIR/summary.txt"
 

@@ -14,6 +14,8 @@ SOFT_CHECKPOINT=""
 HARD_STOP=""
 BOOTSTRAP_COORDINATION=0
 COORDINATION_LEDGER=""
+CAMPAIGN_FILE=""
+CAMPAIGN_LEDGER=""
 AGENT_NAME=""
 HYPOTHESIS_BRANCH=""
 WRITE_SCOPE=""
@@ -22,7 +24,7 @@ COMPUTE_SLOT=""
 usage() {
   cat <<'EOF'
 Usage:
-  perf_session_bootstrap.sh [--label NAME] [--root DIR] [--output-root DIR] [--report-title TITLE] [--skip-noise-check] [--skip-tool-scout] [--detach-baseline] [--with-coordination-ledger] [--coordination-ledger PATH] [--agent-name NAME] [--hypothesis-branch TEXT] [--write-scope TEXT] [--compute-slot TEXT] [--expected-duration TEXT] [--soft-checkpoint TEXT] [--hard-stop TEXT] [-- <baseline command> ...]
+  perf_session_bootstrap.sh [--label NAME] [--root DIR] [--output-root DIR] [--report-title TITLE] [--skip-noise-check] [--skip-tool-scout] [--detach-baseline] [--with-coordination-ledger] [--coordination-ledger PATH] [--campaign-file PATH] [--campaign-ledger PATH] [--agent-name NAME] [--hypothesis-branch TEXT] [--write-scope TEXT] [--compute-slot TEXT] [--expected-duration TEXT] [--soft-checkpoint TEXT] [--hard-stop TEXT] [-- <baseline command> ...]
 
 Examples:
   perf_session_bootstrap.sh --label api-p99 --root .
@@ -109,6 +111,22 @@ while [ $# -gt 0 ]; do
       COORDINATION_LEDGER="$2"
       shift 2
       ;;
+    --campaign-file)
+      if [ $# -lt 2 ]; then
+        echo "--campaign-file requires a value" >&2
+        exit 2
+      fi
+      CAMPAIGN_FILE="$2"
+      shift 2
+      ;;
+    --campaign-ledger)
+      if [ $# -lt 2 ]; then
+        echo "--campaign-ledger requires a value" >&2
+        exit 2
+      fi
+      CAMPAIGN_LEDGER="$2"
+      shift 2
+      ;;
     --agent-name)
       if [ $# -lt 2 ]; then
         echo "--agent-name requires a value" >&2
@@ -188,6 +206,18 @@ OUTPUT_ROOT="$(cd "$OUTPUT_ROOT" && pwd)"
 if [ -n "$COORDINATION_LEDGER" ] && [[ "$COORDINATION_LEDGER" != /* ]]; then
   COORDINATION_LEDGER="$ROOT_ABS/$COORDINATION_LEDGER"
 fi
+if [ -n "$CAMPAIGN_FILE" ] && [[ "$CAMPAIGN_FILE" != /* ]]; then
+  CAMPAIGN_FILE="$ROOT_ABS/$CAMPAIGN_FILE"
+fi
+if [ -n "$CAMPAIGN_LEDGER" ] && [[ "$CAMPAIGN_LEDGER" != /* ]]; then
+  CAMPAIGN_LEDGER="$ROOT_ABS/$CAMPAIGN_LEDGER"
+fi
+if [ -z "$CAMPAIGN_FILE" ] && [ -f "$ROOT_ABS/.perf-campaign/campaign.md" ]; then
+  CAMPAIGN_FILE="$ROOT_ABS/.perf-campaign/campaign.md"
+fi
+if [ -z "$CAMPAIGN_LEDGER" ] && [ -f "$ROOT_ABS/.perf-campaign/results.tsv" ]; then
+  CAMPAIGN_LEDGER="$ROOT_ABS/.perf-campaign/results.tsv"
+fi
 
 TIMESTAMP_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 TIMESTAMP_SLUG="$(date -u +%Y%m%dT%H%M%SZ)"
@@ -216,6 +246,8 @@ BASELINE_SUMMARY=""
 BASELINE_STATE_PATH=""
 BASELINE_RUNNER_PID=""
 BASELINE_RUN_MODE="not-run"
+BASELINE_CAMPAIGN_ENTRY_PATH=""
+BASELINE_CAMPAIGN_APPEND_STATUS="not-run"
 TELEMETRY_SNAPSHOT_SUMMARY="$SESSION_DIR/telemetry_snapshot_summary.txt"
 RESOURCE_GATE_STATUS="not-run"
 RESOURCE_GATE_REPORT="$SESSION_DIR/resource_gate.txt"
@@ -343,6 +375,12 @@ if [ $# -gt 0 ] && [ -f "$SCRIPT_DIR/bench_capture.sh" ]; then
   if [ -n "$COORDINATION_LEDGER" ]; then
     BENCH_CMD+=(--coordination-ledger "$COORDINATION_LEDGER")
   fi
+  if [ -n "$CAMPAIGN_FILE" ]; then
+    BENCH_CMD+=(--campaign-file "$CAMPAIGN_FILE")
+  fi
+  if [ -n "$CAMPAIGN_LEDGER" ]; then
+    BENCH_CMD+=(--campaign-ledger "$CAMPAIGN_LEDGER")
+  fi
   if [ -n "$AGENT_NAME" ]; then
     BENCH_CMD+=(--agent-name "$AGENT_NAME")
   fi
@@ -372,6 +410,8 @@ if [ $# -gt 0 ] && [ -f "$SCRIPT_DIR/bench_capture.sh" ]; then
   BASELINE_STATE_PATH="$(printf '%s\n' "$BASELINE_OUTPUT" | sed -n 's/^state_path=//p' | tail -n 1)"
   BASELINE_RUNNER_PID="$(printf '%s\n' "$BASELINE_OUTPUT" | sed -n 's/^runner_pid=//p' | tail -n 1)"
   BASELINE_RUN_MODE="$(printf '%s\n' "$BASELINE_OUTPUT" | sed -n 's/^run_mode=//p' | tail -n 1)"
+  BASELINE_CAMPAIGN_ENTRY_PATH="$(printf '%s\n' "$BASELINE_OUTPUT" | sed -n 's/^campaign_entry_path=//p' | tail -n 1)"
+  BASELINE_CAMPAIGN_APPEND_STATUS="$(printf '%s\n' "$BASELINE_OUTPUT" | sed -n 's/^campaign_append_status=//p' | tail -n 1)"
   if [ "$DETACH_BASELINE" = "1" ] && [ "$BASELINE_STATUS" = "0" ]; then
     BASELINE_EXIT_STATUS="detached"
   fi
@@ -393,6 +433,7 @@ cat > "$SESSION_DIR/starter-report.md" <<EOF
 - baseline_exit_status: $BASELINE_EXIT_STATUS
 - baseline_run_mode: ${BASELINE_RUN_MODE:-not-run}
 - coordination_ledger: ${COORDINATION_LEDGER:-none}
+- campaign_ledger: ${CAMPAIGN_LEDGER:-none}
 
 ## Artifacts
 
@@ -406,6 +447,9 @@ cat > "$SESSION_DIR/starter-report.md" <<EOF
 - baseline_capture_dir: ${BASELINE_CAPTURE_DIR:-not-run}
 - baseline_summary: ${BASELINE_SUMMARY:-not-run}
 - baseline_state_path: ${BASELINE_STATE_PATH:-not-run}
+- baseline_campaign_entry_path: ${BASELINE_CAMPAIGN_ENTRY_PATH:-not-run}
+- campaign_file: ${CAMPAIGN_FILE:-none}
+- campaign_ledger: ${CAMPAIGN_LEDGER:-none}
 
 ## Goal
 
@@ -434,6 +478,14 @@ cat > "$SESSION_DIR/starter-report.md" <<EOF
 - hypothesis_branch: ${HYPOTHESIS_BRANCH:-none}
 - write_scope: ${WRITE_SCOPE:-none}
 - compute_slot: ${COMPUTE_SLOT:-not-recorded}
+
+## Campaign Context
+
+- campaign_file: ${CAMPAIGN_FILE:-none}
+- campaign_ledger: ${CAMPAIGN_LEDGER:-none}
+- campaign_append_status: ${BASELINE_CAMPAIGN_APPEND_STATUS:-pending | appended | skipped}
+- campaign_entry_path: ${BASELINE_CAMPAIGN_ENTRY_PATH:-baseline capture entry file or none}
+- campaign_next_step: append the baseline or next serious run to the ledger with append_campaign_result.sh
 
 ## Wait Budget
 
@@ -551,7 +603,12 @@ EOF
   printf 'baseline_state_path=%q\n' "${BASELINE_STATE_PATH:-}"
   printf 'baseline_runner_pid=%q\n' "${BASELINE_RUNNER_PID:-}"
   printf 'baseline_run_mode=%q\n' "${BASELINE_RUN_MODE:-not-run}"
+  printf 'baseline_campaign_entry_path=%q\n' "${BASELINE_CAMPAIGN_ENTRY_PATH:-}"
+  printf 'baseline_campaign_append_status=%q\n' "${BASELINE_CAMPAIGN_APPEND_STATUS:-not-run}"
   printf 'coordination_ledger=%q\n' "${COORDINATION_LEDGER:-none}"
+  printf 'campaign_file=%q\n' "${CAMPAIGN_FILE:-none}"
+  printf 'campaign_ledger=%q\n' "${CAMPAIGN_LEDGER:-none}"
+  printf 'campaign_append_status=%q\n' "${BASELINE_CAMPAIGN_APPEND_STATUS:-$([ -n "$CAMPAIGN_LEDGER" ] && printf 'pending' || printf 'skipped')}"
   printf 'agent_name=%q\n' "${AGENT_NAME:-none}"
   printf 'hypothesis_branch=%q\n' "${HYPOTHESIS_BRANCH:-none}"
   printf 'write_scope=%q\n' "${WRITE_SCOPE:-none}"
@@ -572,9 +629,15 @@ printf 'starter_report=%s\n' "$SESSION_DIR/starter-report.md"
 if [ -n "$COORDINATION_LEDGER" ]; then
   printf 'coordination_ledger=%s\n' "$COORDINATION_LEDGER"
 fi
+if [ -n "$CAMPAIGN_LEDGER" ]; then
+  printf 'campaign_ledger=%s\n' "$CAMPAIGN_LEDGER"
+fi
 if [ -n "$BASELINE_CAPTURE_DIR" ]; then
   printf 'baseline_capture_dir=%s\n' "$BASELINE_CAPTURE_DIR"
 fi
 if [ -n "$BASELINE_STATE_PATH" ]; then
   printf 'baseline_state_path=%s\n' "$BASELINE_STATE_PATH"
+fi
+if [ -n "$BASELINE_CAMPAIGN_ENTRY_PATH" ]; then
+  printf 'baseline_campaign_entry_path=%s\n' "$BASELINE_CAMPAIGN_ENTRY_PATH"
 fi
