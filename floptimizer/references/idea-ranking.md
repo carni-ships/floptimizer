@@ -9,6 +9,7 @@ Score each idea informally across these dimensions:
 - expected end-to-end impact
 - ceiling size
 - remaining headroom to the practical floor
+- level leverage
 - confidence
 - validation speed
 - enablement value
@@ -31,6 +32,18 @@ Even if the idea works, is the upside large enough to matter?
 How much plausible room is actually left in this slice before you hit the fastest believable version of the required work?
 
 This keeps the agent from over-investing in a slice that still looks hot but is already close to its practical floor.
+
+### Level leverage
+
+At what level is this idea operating, and is that the level most likely to matter?
+
+Good questions:
+
+- does this remove work at a higher level?
+- does this reorganize the work so later wins become possible?
+- does this squeeze unavoidable work that higher-level changes have already failed to remove?
+
+Use [`optimization-levels.md`](optimization-levels.md) when the current branch set is too concentrated at one abstraction level.
 
 ### Confidence
 
@@ -72,6 +85,8 @@ Prefer ideas that are:
 3. fast to validate
 4. low blast radius
 5. enablers for blocked high-upside branches
+
+All else equal, prefer the highest level that plausibly removes meaningful work, then descend when the work is genuinely necessary and still dominant.
 
 Delay ideas that are:
 
@@ -150,6 +165,7 @@ If two ideas look similar, prefer the one that:
 - teaches you more if it fails
 - leaves behind reusable measurement or benchmark infrastructure
 - keeps blocked branches visible instead of closing options
+- attacks the hotspot from a different level when the current search is too concentrated
 - descends the stack only as far as the current evidence justifies
 - separates spike cost from rollout cost more cleanly
 

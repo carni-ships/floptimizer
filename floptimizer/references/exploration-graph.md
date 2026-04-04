@@ -115,6 +115,7 @@ This keeps the process persistent without becoming endless wandering.
 If multiple agents are working in parallel:
 
 - assign one owner per active branch
+- if roles are specialized, assign one lead agent and explicit research, implementation, testing, or review sub-roles
 - avoid overlapping write scopes unless the work is explicitly serialized
 - keep heavy compute work behind a shared compute-slot claim
 - use a shared coordination ledger so two agents do not accidentally chase the same branch at once

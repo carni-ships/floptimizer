@@ -8,6 +8,7 @@ Use this file when multiple agents are exploring optimization ideas in parallel 
 - Ownership Model
 - Compute Slot Model
 - Parallel Search Pattern
+- Specialist Subagents
 - Minimal Rules
 - Template
 
@@ -112,6 +113,20 @@ Bad candidate split:
 
 - Agent A and B both editing the same hot module without explicit serialization
 - multiple agents launching independent heavy benchmarks on the same shared machine
+
+## Specialist Subagents
+
+When the search benefits from specialized roles, keep the same coordination rules but add explicit role boundaries.
+
+Good pattern:
+
+- one lead agent owns branch ranking and final decisions
+- one research subagent expands or sharpens the hypothesis set
+- one implementation subagent changes a bounded write scope
+- one testing subagent validates correctness and runs captures while holding the compute slot
+- one review subagent checks invariants and regression risk
+
+Use [`subagent-orchestration.md`](subagent-orchestration.md) when you want a clearer role split, handoff contract, and recommended task graph.
 
 ## Minimal Rules
 

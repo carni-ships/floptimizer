@@ -107,10 +107,12 @@ Load these references as needed:
 - [`references/goal-refinement.md`](references/goal-refinement.md) for turning vague speed goals into a concrete primary metric, operating region, and stop rule.
 - [`references/invariants-and-acceptance.md`](references/invariants-and-acceptance.md) for defining what must stay true, what minimum effect size counts as a real win, and what evidence is required before keeping a change.
 - [`references/ceiling-analysis.md`](references/ceiling-analysis.md) for estimating maximum plausible upside before deep tuning.
+- [`references/optimization-levels.md`](references/optimization-levels.md) for scanning a hotspot across multiple abstraction levels so the search does not get trapped in only micro-tuning or only architectural ideas.
 - [`references/idea-ranking.md`](references/idea-ranking.md) for ordering candidate ideas by impact, ceiling, validation speed, enablement value, and risk.
 - [`references/ablation-and-controls.md`](references/ablation-and-controls.md) for keeping a true baseline, running ablations after bundled wins, and distinguishing direct wins from enabling work.
 - [`references/uncertainty-and-sensitivity.md`](references/uncertainty-and-sensitivity.md) for deciding whether a gain is robust, fragile, noisy, or too narrowly tuned to trust.
 - [`references/agent-coordination.md`](references/agent-coordination.md) for parallel multi-agent experiment work, disjoint write ownership, and compute-slot coordination on shared machines.
+- [`references/subagent-orchestration.md`](references/subagent-orchestration.md) for splitting a campaign into research, implementation, testing, and review subagents without duplicating work or oversubscribing the machine.
 - [`references/iteration-strategy.md`](references/iteration-strategy.md) for what to do when optimization progress stalls, how to change abstraction levels, and how to distrust noisy profiling runs.
 - [`references/exploration-graph.md`](references/exploration-graph.md) for keeping a branching hypothesis log, marking blocked directions, and revisiting them when prerequisites change.
 - [`references/experiment-log.md`](references/experiment-log.md) for recording why a serious experiment worked, failed, or stayed blocked so later agents can reuse the reasoning.
@@ -146,9 +148,10 @@ Fast routes:
 - fuzzy goal or tradeoff confusion: [`references/goal-refinement.md`](references/goal-refinement.md), [`references/invariants-and-acceptance.md`](references/invariants-and-acceptance.md)
 - noisy, fragile, or hardware-sensitive results: [`references/system-telemetry.md`](references/system-telemetry.md), [`references/uncertainty-and-sensitivity.md`](references/uncertainty-and-sensitivity.md), [`references/tuning-matrix.md`](references/tuning-matrix.md)
 - hard next-step judgment or unclear interpretation: [`references/reasoning-budget.md`](references/reasoning-budget.md), [`references/idea-ranking.md`](references/idea-ranking.md), [`references/iteration-strategy.md`](references/iteration-strategy.md)
+- current search feels trapped at the wrong abstraction level: [`references/optimization-levels.md`](references/optimization-levels.md), [`references/idea-ranking.md`](references/idea-ranking.md), [`references/optimization-playbook.md`](references/optimization-playbook.md)
 - bundled changes with unclear attribution: [`references/ablation-and-controls.md`](references/ablation-and-controls.md)
 - stuck optimization search: [`references/iteration-strategy.md`](references/iteration-strategy.md), [`references/exploration-graph.md`](references/exploration-graph.md), [`references/research-strategy.md`](references/research-strategy.md), [`references/novel-hypothesis-generation.md`](references/novel-hypothesis-generation.md)
-- parallel agent search on one workspace or machine: [`references/agent-coordination.md`](references/agent-coordination.md)
+- parallel agent search on one workspace or machine: [`references/agent-coordination.md`](references/agent-coordination.md), [`references/subagent-orchestration.md`](references/subagent-orchestration.md)
 - accelerator, SIMD, or device-specific work: [`references/hardware-acceleration.md`](references/hardware-acceleration.md), [`references/apple-silicon-cpu.md`](references/apple-silicon-cpu.md), [`references/system-telemetry.md`](references/system-telemetry.md)
 - productionization and guardrails: [`references/rollout-and-regression.md`](references/rollout-and-regression.md)
 
@@ -169,6 +172,7 @@ If the user is vague, ask only the missing questions needed to define success. O
 If the goal is still too fuzzy to guide tradeoffs, open [`references/goal-refinement.md`](references/goal-refinement.md) before choosing optimization ideas.
 If the must-not-break properties or minimum meaningful win are still fuzzy, open [`references/invariants-and-acceptance.md`](references/invariants-and-acceptance.md) before running an expensive experiment campaign.
 If the work is likely to span many serious runs or branches, bootstrap a campaign directive and ledger with [`scripts/campaign_bootstrap.sh`](scripts/campaign_bootstrap.sh), then use [`references/campaign-loop.md`](references/campaign-loop.md) to keep a compact keep/discard history alongside the richer captures.
+If the work is likely to benefit from explicit research, implementation, testing, or review sub-roles, open [`references/subagent-orchestration.md`](references/subagent-orchestration.md) and keep one lead agent responsible for branch decisions, ledger sanity, and final reconciliation.
 If the user explicitly wants progress without starting fresh heavy computation, enter non-competing mode and use [`references/non-competing-mode.md`](references/non-competing-mode.md) to choose coding, review, planning, and research work that does not add major load.
 If the next move is clearly judgment-heavy, raise the reasoning budget before deciding it. Use [`references/reasoning-budget.md`](references/reasoning-budget.md) when you need a quick rule for when to think harder versus staying procedural.
 If the next move is mostly a known sequence of tool calls, captures, comparisons, or process launches, lower the reasoning budget if the platform supports it. If that sequence is likely to repeat, prefer a small script or helper so the agent stops re-solving the same orchestration problem.
@@ -209,6 +213,7 @@ If the hesitation comes from rewrite scope rather than true evidence, open [`ref
 - If a serious run teaches a generally reusable trick, fill in the `Reusable Optimization Trick Candidate` section in the notes or starter report and periodically harvest it with [`scripts/harvest_trick_candidates.sh`](scripts/harvest_trick_candidates.sh).
 - If a run produces a novel, mixed, negative, or otherwise paper-worthy result, fill in the `Paper-Ready Finding` section and periodically harvest it with [`scripts/harvest_paper_findings.sh`](scripts/harvest_paper_findings.sh).
 - If multiple agents are exploring in parallel, use [`references/agent-coordination.md`](references/agent-coordination.md) so edit ownership, experiment branches, and compute-heavy jobs are coordinated explicitly. Prefer git branches or worktrees plus a live shared claim ledger rather than git alone.
+- If those multiple agents are being used as specialist subagents, also use [`references/subagent-orchestration.md`](references/subagent-orchestration.md) so the lead agent, research, implementation, testing, and review roles stay explicit and the heavy compute slot is still serialized.
 - If a path failed because of current constraints rather than a bad underlying idea, capture the concrete unblockers so a future agent on different hardware or after other improvements can retry it intelligently.
 
 Default command families:
@@ -253,6 +258,7 @@ Use this triage order:
 If the class is unclear, open [`references/bottleneck-map.md`](references/bottleneck-map.md) and use the symptom-to-diagnosis table.
 
 Before committing to a deep optimization path, open [`references/ceiling-analysis.md`](references/ceiling-analysis.md) and estimate both the maximum plausible upside and the practical floor for that slice. If the realistic ceiling is too small or the remaining headroom to the floor is already narrow, change direction early.
+If the hotspot is known but the search is collapsing into only low-level tuning or only big redesign ideas, open [`references/optimization-levels.md`](references/optimization-levels.md) and deliberately generate candidates at the current level, one level above, and one level below.
 Then open [`references/idea-ranking.md`](references/idea-ranking.md) so the next experiment is chosen by end-to-end value rather than novelty.
 
 ## Phase 4: Attack Order
@@ -271,6 +277,7 @@ Apply optimizations in roughly this order unless evidence says otherwise:
 
 Prefer reversible changes until a gain is proven. Once a direction is clearly winning, deeper refactors are justified. If a refactor-heavy direction has credible upside but is not the best immediate move, park it explicitly instead of treating it as rejected.
 Also account for path dependence: sometimes the right next move is enabling work such as batching, layout cleanup, copy reduction, or queue simplification that makes a later optimization finally pay off.
+When a hotspot is stubborn, do a quick level sweep before committing to the next branch: ask how to make the same work cheaper, how to reorganize the local structure, how to reduce the total work, and whether the surrounding pipeline or subsystem boundary is the real lever.
 
 ### Stack Descent
 

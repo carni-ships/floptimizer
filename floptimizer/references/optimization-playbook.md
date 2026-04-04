@@ -4,6 +4,7 @@ Use this file after identifying the bottleneck class. The goal is to expand the 
 
 ## Contents
 
+- Cross-Level Search
 - Application and Algorithm Layer
 - Unlocking Work And Path Dependence
 - Language and Runtime Layer
@@ -13,6 +14,24 @@ Use this file after identifying the bottleneck class. The goal is to expand the 
 - Operating System and Hardware Layer
 - Build and CI Layer
 - Safety Checks Before Keeping an Optimization
+
+## Cross-Level Search
+
+Before picking from the rest of this playbook, ask what level the current ideas are operating on.
+
+Common failure modes:
+
+- only rewriting inner operations when the total work is still avoidable
+- only proposing architectural changes when a local layout or batching fix would unlock a large win
+- only tuning dependencies when the pipeline shape is the real issue
+
+For a serious hotspot, try to produce candidates from at least three nearby levels:
+
+- current level
+- one level above
+- one level below
+
+For a more explicit sweep, use [`optimization-levels.md`](optimization-levels.md).
 
 ## Application and Algorithm Layer
 
