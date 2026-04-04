@@ -6,6 +6,7 @@ Use this file when one lead agent wants to split an optimization campaign into p
 
 - Core Model
 - When To Split Work
+- How Many Subagents
 - Good Role Split
 - Lead Agent Responsibilities
 - Subagent Contract
@@ -38,6 +39,29 @@ Subagents help when:
 - the lead agent can continue making progress without waiting on all branches
 
 Do not split work just because there are many ideas. Split when the work can be cleanly partitioned.
+
+## How Many Subagents
+
+Good default on one shared machine:
+
+- 1 lead agent
+- 1 or 2 light-lane subagents
+- optionally 1 implementation or testing subagent
+
+That usually means:
+
+- 2 total agents for small or medium work
+- 3 total agents as the best default
+- 4 total agents when the branches are clearly distinct and coordination is still cheap
+
+Avoid going past 4 or 5 total agents on one shared machine unless:
+
+- most extra agents are read-only research or review agents
+- write scopes stay cleanly separated
+- heavy compute is still serialized
+- the lead agent can still integrate results quickly
+
+Stop adding agents when coordination overhead starts competing with the likely gain.
 
 ## Good Role Split
 
@@ -108,6 +132,30 @@ Expected outputs should usually be one or more of:
 ## Compute Discipline
 
 Heavy jobs still need serialization even when the thinking work is parallel.
+
+Use this compact rule:
+
+- parallelize search
+- serialize shared-machine measurement
+- one heavy lane, many light lanes
+
+The heavy lane is for:
+
+- long builds
+- benchmarks
+- profiles
+- sweeps
+- detached or background heavy jobs
+
+The light lanes are for:
+
+- literature review
+- exemplar review
+- branch ranking
+- source inspection
+- review
+- low-risk disjoint editing
+- note cleanup and handoff preparation
 
 Rules:
 

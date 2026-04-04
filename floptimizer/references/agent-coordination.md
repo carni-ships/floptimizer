@@ -65,6 +65,12 @@ Do not claim the whole repository when only two files are being edited.
 
 Code conflicts and compute conflicts are different problems.
 
+Good default slogan on one shared machine:
+
+- parallelize search
+- serialize measurement
+- one heavy lane, many light lanes
+
 One agent may own:
 
 - `src/encoder.rs`
