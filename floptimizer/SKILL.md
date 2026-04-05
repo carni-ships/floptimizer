@@ -58,6 +58,7 @@ Use [`references/invariants-and-acceptance.md`](references/invariants-and-accept
 - Get aggressive only after identifying the bottleneck with data.
 - On one shared machine, parallelize search and serialize measurement: keep one heavy lane for builds, profiles, benchmarks, and sweeps, while other agents stay in light lanes such as research, review, planning, and disjoint low-risk edits.
 - When using subagents on one shared machine, prefer 2 to 4 total agents, with 3 as the usual default: one lead agent, one or two light-lane subagents, and at most one active heavy-lane worker at a time.
+- When subagents are writing code, each subagent should work on its own git branch or worktree. The lead agent should review that branch, then merge or cherry-pick it only after the result looks safe.
 - Prefer big wins before micro-optimizations: algorithms, batching, indexing, data layout, contention removal, serialization reduction, cache strategy, and topology changes.
 - Consider preprocessing and input shaping as first-class optimization levers. A better-normalized, sorted, packed, canonicalized, or prefiltered input can make downstream code dramatically cheaper.
 - Treat redundant processing as a first-class clue: repeated parsing, validation, encoding, copying, fan-out, scans, retries, and recomputation are often signals of removable work.

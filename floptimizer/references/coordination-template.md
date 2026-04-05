@@ -13,6 +13,7 @@ system_work_mode: heavy-ok | prefer-non-competing | non-competing
 - agent:
   role:
   branch_or_worktree:
+  integration_status: in-progress | ready-for-review | merged | parked
   hypothesis_branch:
   status: active | blocked | parked | done
   work_mode: heavy-ok | non-competing
@@ -62,6 +63,7 @@ Suggested use:
 
 - keep `Active Agents` small and current
 - make `role` and `expected_outputs` explicit when agents are specialized
+- move `integration_status` to `ready-for-review` when a subagent branch is ready for lead-agent review
 - keep `Write Claims` narrow
 - allow only one active heavy `Compute Slot` holder per shared machine unless you know the workloads will not interfere
 - background or detached jobs should still keep the `Compute Slot` claimed until they really finish

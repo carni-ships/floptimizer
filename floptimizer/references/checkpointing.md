@@ -46,6 +46,12 @@ Good code checkpoints are usually:
 - one or more intentional commits
 - a note in the branch log or coordination ledger pointing to that branch
 
+When subagents are involved:
+
+- preserve their meaningful implementation state on the subagent's own branch or worktree
+- have the lead agent review that branch before integrating it
+- treat reviewed integration as a separate step from simply preserving the branch
+
 ## Pre-Risk Rollback Checkpoints
 
 Before a risky refactor, invasive optimization, or boundary change:

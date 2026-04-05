@@ -131,12 +131,15 @@ Good pattern:
 - one implementation subagent changes a bounded write scope
 - one testing subagent validates correctness and runs captures while holding the compute slot
 - one review subagent checks invariants and regression risk
+- each write-enabled subagent works on its own git branch or worktree
+- the lead agent reviews the subagent branch before merge, cherry-pick, or manual porting
 
 Use [`subagent-orchestration.md`](subagent-orchestration.md) when you want a clearer role split, handoff contract, and recommended task graph.
 
 ## Minimal Rules
 
 - Prefer one branch or worktree per agent when possible.
+- Prefer one branch or worktree per write-enabled subagent, not one shared branch for all active edits.
 - Keep a live claim ledger outside of git history assumptions.
 - Do not edit files claimed by another active agent without re-coordination.
 - Do not launch heavy compute jobs without claiming the compute slot.
@@ -146,6 +149,7 @@ Use [`subagent-orchestration.md`](subagent-orchestration.md) when you want a cle
 - Keep the compute slot claimed for background or detached jobs until the process actually ends.
 - Record blocked, won, lost, and active experiment branches in one shared place.
 - After meaningful results, checkpoint the branch state and, for significant builds, preserve them on a branch or worktree instead of leaving them only in a dirty workspace.
+- Have the lead agent review a subagent's branch before integrating it into the main working line.
 - If claims overlap, serialize the work rather than hoping merge cleanup will be cheap.
 - Release claims quickly when you stop actively working that area.
 

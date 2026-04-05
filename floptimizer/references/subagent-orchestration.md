@@ -7,6 +7,7 @@ Use this file when one lead agent wants to split an optimization campaign into p
 - Core Model
 - When To Split Work
 - How Many Subagents
+- Branching And Integration
 - Good Role Split
 - Lead Agent Responsibilities
 - Subagent Contract
@@ -63,6 +64,26 @@ Avoid going past 4 or 5 total agents on one shared machine unless:
 
 Stop adding agents when coordination overhead starts competing with the likely gain.
 
+## Branching And Integration
+
+If a subagent is allowed to edit code, it should usually work on its own git branch or worktree.
+
+Good default:
+
+- one branch or worktree per write-enabled subagent
+- one narrow task per branch
+- one lead agent reviewing the resulting branch before integration
+
+Integration should usually happen like this:
+
+1. subagent finishes its bounded task on its own branch
+2. lead agent reviews the diff, notes, and test or benchmark evidence
+3. lead agent merges, cherry-picks, or manually ports the branch only if it looks safe
+4. lead agent updates the branch log, checkpoint state, and campaign state
+
+Do not let write-enabled subagents commit directly onto the lead agent's working branch.
+Do not auto-merge subagent branches just because they completed. Completion is not the same as integration approval.
+
 ## Good Role Split
 
 Strong default pattern:
@@ -102,8 +123,9 @@ The lead agent should:
 3. assign one owner per active branch
 4. assign explicit write scope per implementation task
 5. keep one shared compute slot policy
-6. merge results back into one branch log and campaign ledger
-7. make the final keep, park, discard, or preserve decision
+6. review subagent branches before merging, cherry-picking, or porting them
+7. merge results back into one branch log and campaign ledger
+8. make the final keep, park, discard, or preserve decision
 
 The lead agent should not outsource the whole search blindly. It should reconcile the evidence.
 
@@ -114,6 +136,7 @@ Each subagent should receive:
 - role
 - exact task
 - success condition
+- branch or worktree to use if write-enabled
 - allowed write scope
 - whether it is read-only or write-enabled
 - whether it may launch heavy compute
@@ -186,6 +209,7 @@ Use a compact handoff like:
 agent:
 role:
 branch:
+branch_or_worktree:
 task:
 write_scope:
 compute_permission: none | claim-required
@@ -202,8 +226,10 @@ log_to:
 ## Guardrails
 
 - Do not assign the same branch to two active subagents unless the split is explicit and non-overlapping.
+- Do not let multiple write-enabled subagents share one active working branch.
 - Do not let multiple subagents edit the same file set without serialization.
 - Do not let subagents make independent keep or discard decisions without lead-agent reconciliation.
+- Do not merge a subagent branch without lead-agent review of the code and the attached evidence.
 - Do not allow every subagent to spawn heavy jobs just because they are independent.
 - Do not treat “more agents” as a substitute for good branch ranking.
 - If the overhead of coordination exceeds the likely gain, collapse back to one lead agent.
