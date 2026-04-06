@@ -13,6 +13,8 @@ A benchmark or staging win can still fail in production because of:
 - different dependency behavior
 - safety or observability regressions under real traffic
 
+Untested implementation is not finished local work either. Before calling the optimization complete, run the relevant correctness or invariant checks or explicitly report that validation is still blocked.
+
 ## Rollout Plan
 
 Prefer a reversible rollout:

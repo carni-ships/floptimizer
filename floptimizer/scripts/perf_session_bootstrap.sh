@@ -463,6 +463,14 @@ cat > "$SESSION_DIR/starter-report.md" <<EOF
 
 -
 
+## Validation Gate
+
+- correctness_checks_run:
+- validation_status: passed | failed | not-run | blocked
+- missing_or_blocked_checks:
+- blocked_reason:
+- completion_status: complete | implementation-only | blocked-on-validation
+
 ## Initial Signals
 
 - bottleneck clues:

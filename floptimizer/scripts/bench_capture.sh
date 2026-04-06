@@ -632,6 +632,14 @@ cat > "$RUN_DIR/notes.md" <<EOF
 
 -
 
+## Validation Gate
+
+- correctness_checks_run:
+- validation_status: passed | failed | not-run | blocked
+- missing_or_blocked_checks:
+- blocked_reason:
+- completion_status: complete | implementation-only | blocked-on-validation
+
 ## Checkpoint Decision
 
 - checkpoint_type: knowledge | code | both

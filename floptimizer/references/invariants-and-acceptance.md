@@ -8,6 +8,7 @@ Use this file before a serious optimization pass and before declaring the work d
 - Acceptance Criteria
 - Minimum Effect Size
 - Evidence Required
+- Completion Gate
 - Keep Or Reject
 - Output Format
 
@@ -77,6 +78,24 @@ Before calling a change accepted, prefer:
 
 If the evidence is weaker than that, label the result provisional instead of settled.
 
+## Completion Gate
+
+Untested implementation is not complete.
+
+Before marking the work complete, one of these must be true:
+
+- correctness or invariant checks ran and passed
+- correctness checks ran and failed, and the work is correctly marked incomplete
+- correctness checks could not be run, and the work is explicitly marked `implementation-only` or `blocked-on-validation`
+
+Do not let "the code looks right" substitute for this gate.
+If validation is blocked, record:
+
+- which checks are still missing
+- why they were not run
+- what would be needed to run them
+- who should treat the current state as incomplete
+
 ## Keep Or Reject
 
 Keep the change when:
@@ -89,6 +108,7 @@ Reject or defer it when:
 
 - the gain is below the minimum meaningful threshold
 - the invariants are not proven
+- the implementation is still untested and validation was not explicitly called out as blocked
 - the win is too fragile for the intended operating region
 - the complexity or operational risk outweighs the expected value
 

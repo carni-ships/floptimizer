@@ -50,6 +50,7 @@ Use [`references/invariants-and-acceptance.md`](references/invariants-and-accept
 - trusting a one-off noisy win
 - changing behavior "while we're here"
 - keeping a result without correctness or invariant proof
+- marking an implementation complete without running correctness checks or explicitly reporting blocked validation
 - overfitting to one machine or one benchmark point
 
 ## Core Operating Mode
@@ -71,6 +72,7 @@ Use [`references/invariants-and-acceptance.md`](references/invariants-and-accept
 - Keep refactor-heavy directions alive when the upside is real. A large eventual rewrite is not a reason to discard a branch if a narrow hot-slice spike or staged rewrite could still teach something important.
 - Do not halt a promising rewrite-heavy direction with "too major of a lift" until you have written the smallest slice, boundary, oracle, and fallback. Use [`references/rewrite-decomposition.md`](references/rewrite-decomposition.md) when that decomposition is not obvious.
 - Write down the reasoning behind serious attempts so later agents can tell why an idea won, failed, or is merely blocked.
+- Untested implementation is not complete. If correctness checks could not be run, report the result as implementation-only or blocked-on-validation, with the missing checks and the reason they were not run.
 - Checkpoint the last known-good implementation before risky changes when rollback would otherwise be reconstructive or ambiguous.
 - Preserve correct but non-winning builds when they are expensive to recreate, useful as fallback or oracle paths, or plausible candidates for later improvement.
 - Preserve correctness, security, durability, privacy, and debuggability. Do not introduce undefined behavior, benchmark-only hacks, silent precision loss, unbounded memory growth, or durability regressions.
@@ -187,6 +189,7 @@ If the hesitation comes from rewrite scope rather than true evidence, open [`ref
 - Reuse existing tests, benchmarks, traces, dashboards, and production samples when they are representative.
 - If nothing usable exists, create the smallest faithful harness possible.
 - If correctness coverage is weak around the optimized behavior, add the smallest targeted tests, fixtures, property checks, or differential checks needed to catch semantic drift.
+- Before calling the work complete, run those correctness checks or explicitly mark the result as blocked on validation. Do not silently promote an unverified implementation to complete.
 - When a benchmark command is likely to be reused, run it through [`scripts/bench_capture.sh`](scripts/bench_capture.sh) so the exact command line, environment, git state, wait budget, coordination context, and raw output stay attached to the result.
 - For long-running campaigns, keep a compact `results.tsv`-style ledger in addition to the rich capture folders. Use [`scripts/append_campaign_result.sh`](scripts/append_campaign_result.sh) to record serious runs without reconstructing them from memory later.
 - For non-interactive multi-minute runs, prefer [`scripts/bench_capture.sh`](scripts/bench_capture.sh) with `--detach` so the run stays supervised while the agent uses the waiting window for non-competing work.

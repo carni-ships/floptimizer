@@ -51,6 +51,8 @@ For many optimizations, a quick written proof is enough to prevent accidental se
 
 If the answer is unclear for any of those, do not wave it through as "probably fine." Use [`invariants-and-acceptance.md`](invariants-and-acceptance.md) and add the smallest targeted proof you need.
 
+Untested implementation is not complete. If the proof or checks could not be run yet, mark the result as `implementation-only` or `blocked-on-validation` instead of calling the task done.
+
 ## Noise Control
 
 - Run enough iterations to distinguish signal from noise.
@@ -214,6 +216,7 @@ Each run directory contains:
 - `rerun.sh`: convenience script to re-run the command from the same working directory
 
 Keep separate correctness artifacts when the benchmark alone cannot prove semantic equivalence.
+If the implementation has not yet gone through those checks, do not treat the benchmark capture as completion evidence by itself.
 Keep per-environment tuning notes when the optimum depends on hardware or firmware differences.
 Use [`../scripts/bench_compare.sh`](../scripts/bench_compare.sh) to compare elapsed time and capture context before declaring a win.
 For recognized harnesses such as `hyperfine`, it prefers the inner benchmark metric when it can parse it; otherwise it falls back to the outer capture elapsed time and warns accordingly.
