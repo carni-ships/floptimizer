@@ -66,6 +66,8 @@ Use [`references/invariants-and-acceptance.md`](references/invariants-and-accept
 - Treat dependencies as part of the optimization surface. If profiles point into libraries, runtimes, drivers, or imported packages, include version choice, configuration, replacement, or upstream fixes in the search space.
 - Treat some optimizations as path-dependent. A change may be valuable because it unlocks a later win, not because it is the final win by itself.
 - Keep the search structured. Track branches of ideas, mark blocked ones explicitly, and revisit them when enabling work changes the prerequisites.
+- Feed failed-attempt notes forward. Before advancing a nearby branch, load the closest failed or blocked attempts and state what this branch does differently so the search learns instead of looping.
+- Keep a small amount of search diversity alive when the space is uncertain. Prefer two or three distinct branch families over five tiny variants of the same local idea. Use [`references/search-diversity.md`](references/search-diversity.md) when the search starts collapsing too early.
 - When a path is blocked or looks dead in the current environment, write down what would unblock it: more memory, a different device class, larger batches, lower temporary memory pressure, a dependency upgrade, cleaner ownership, or some other concrete change.
 - When the blocker is missing access or missing implementation support, ask whether the missing capability can be recreated locally as the smallest bounded shim, adapter, port, or replacement. Do not try to bypass access controls or private code boundaries; build around the missing surface if the contract can be inferred safely enough to measure.
 - Do not reject a direction only because the full rollout sounds like a major human project. First scope the smallest bounded spike that could falsify or validate it, and estimate that effort separately from the eventual production implementation.
@@ -77,6 +79,8 @@ Use [`references/invariants-and-acceptance.md`](references/invariants-and-accept
 - Preserve correct but non-winning builds when they are expensive to recreate, useful as fallback or oracle paths, or plausible candidates for later improvement.
 - Preserve correctness, security, durability, privacy, and debuggability. Do not introduce undefined behavior, benchmark-only hacks, silent precision loss, unbounded memory growth, or durability regressions.
 - Change one performance variable at a time whenever possible so gains remain attributable.
+- Treat the evaluator and harness as attack surfaces. Before trusting a dramatic win, ask how the result could be faking progress by skipping work, changing semantics, reusing stale outputs, narrowing the workload, or leaning on warm state that is not being accounted for. Use [`references/evaluator-hardening.md`](references/evaluator-hardening.md) when the metric looks easy to game.
+- When you are changing the skill, prompt framing, or campaign steering itself, treat that wording change as an intervention and evaluate it on a small representative task set before adopting it broadly. Use [`references/prompt-evaluation.md`](references/prompt-evaluation.md) and prefer evidence over intuition.
 
 ## Quick Start
 

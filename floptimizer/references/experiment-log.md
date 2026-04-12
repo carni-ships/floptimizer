@@ -19,9 +19,12 @@ For each serious attempt, capture:
 - exact benchmark or profile used
 - result summary
 - why the result was effective, ineffective, or inconclusive
+- nearby failed or blocked attempts consulted before trying this branch
+- failure family or repeated mistake pattern if this run belongs to one
 - confounders or machine-noise concerns
 - concrete unblockers if the idea failed only because of the current environment or prerequisites
 - revisit condition if the idea is blocked rather than dead
+- what future branches should avoid repeating
 - checkpoint type and location if the current implementation state was preserved
 
 Keep lightweight tweaks lightweight. Use detailed notes for expensive, surprising, risky, or path-dependent experiments.
@@ -30,10 +33,12 @@ Keep lightweight tweaks lightweight. Use detailed notes for expensive, surprisin
 
 - What bottleneck did this change target?
 - Why did we think it would help?
+- Which earlier failed branches did this attempt learn from?
 - What had to be true for the idea to pay off?
 - What actually changed in the numbers?
 - If it failed, what invalidated the hypothesis?
 - If it partly worked, what is still blocking the full win?
+- What should the next nearby branch do differently?
 - What hardware, resource, dependency, or prerequisite change would make this worth trying again?
 - What would make this worth revisiting later?
 - Should this implementation state be preserved on a branch or worktree before we move on?
@@ -49,12 +54,15 @@ target_bottleneck: CPU hot path in request encoding
 hypothesis: fewer copies and smaller intermediate buffers will reduce CPU and p99
 expected_mechanism: less allocator churn and less memory traffic in the encode stage
 prerequisites: request shape is stable enough to reuse buffers
+failed_attempts_consulted: serializer-inline-spike, pooled-temp-buffers-v1
+failure_family: copy-reduction-without-format-change
 setup: bench_capture run 20260328T...
 result: CPU -11%, p99 -7%, RSS unchanged
 why: buffer reuse cut allocation churn, but JSON formatting still dominates total encode time
 confounders: machine was quiet, warm-state only
 unblockers: binary wire format or pre-serialized cache on the hot path
 revisit_when: if binary wire format is introduced, rerun this path
+avoid_next_time: do not retry more copy shaving until format or batching changes
 checkpoint: knowledge only | code branch perf/serializer-spike at abc123
 preservation_class: winner | non-winning-correct | oracle | fallback | comparison-point
 ```
@@ -64,6 +72,7 @@ preservation_class: winner | non-winning-correct | oracle | fallback | compariso
 - prefer cause-and-effect language over change logs
 - write enough that a different agent can decide whether to revive the idea
 - distinguish `lost` from `blocked`
+- tell the next branch what not to repeat, not just what happened
 - if the result was noisy, say so explicitly
 - if the win depended on warm state, say so explicitly
 - if the implementation is expensive to recreate, say where the preserved branch or worktree lives

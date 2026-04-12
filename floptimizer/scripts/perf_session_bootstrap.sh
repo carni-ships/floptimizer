@@ -510,6 +510,14 @@ cat > "$SESSION_DIR/starter-report.md" <<EOF
 - speculative branches:
 - blocked branches:
 
+## Branch Family And Failure Propagation
+
+- active_families:
+- failed_attempts_consulted:
+- what_the_next_branch_should_do_differently:
+- what_future_branches_should_avoid:
+- frontier_shape: converged | diverse | too-wide
+
 ## Environment-Specific Tuning Notes
 
 - hardware_profile:
@@ -574,6 +582,13 @@ cat > "$SESSION_DIR/starter-report.md" <<EOF
 
 -
 
+## Evaluator Hardening
+
+- evaluator_risks:
+- hardening_checks:
+- holdout_or_oracle:
+- fake_win_concerns:
+
 ## Checkpoint Decision
 
 - checkpoint_type: knowledge | code | both
@@ -592,6 +607,8 @@ cat > "$SESSION_DIR/starter-report.md" <<EOF
 - tool_or_script_gap:
 - trigger_issue:
 - candidate_update:
+- prompt_or_routing_variant_tested:
+- prompt_or_routing_effect:
 EOF
 
 {

@@ -8,6 +8,7 @@ Use this file when the optimization process has multiple plausible directions an
 - Why This Helps
 - What To Record Per Branch
 - Good Status Meanings
+- Diversity Rule
 - Revisit Rule
 - Practical Loop
 - Example
@@ -55,11 +56,30 @@ Keep it compact:
 - concrete unblockers such as more GPU memory, lower temp memory pressure, larger batches, or a dependency/runtime change
 - missing_capability and smallest_substitute when the path is blocked by unavailable repo access, missing bindings, or unsupported platform support
 - source type such as literature-derived, exemplar-derived, or first-principles speculative
+- branch family such as local-codegen, layout, algorithmic, pipeline, dependency, or hardware
+- failed_attempts_consulted from nearby branches or prior runs
+- what_this_branch_does_differently from the nearest failed or blocked relatives
+- what_future_branches_should_avoid if this branch fails in an instructive way
 - evidence so far
 - link or pointer to detailed experiment notes when they exist
 - preserved_branch_or_worktree when the implementation state is worth keeping
 - checkpoint_ref if a meaningful commit or checkpoint exists
 - next trigger for revisiting it
+
+## Diversity Rule
+
+Do not let the frontier collapse too quickly into one family of ideas.
+
+When the search is still uncertain, keep two or three distinct families alive, for example:
+
+- local operation rewrite
+- pipeline or boundary reduction
+- algorithmic or representation change
+- dependency or runtime change
+- hardware or offload path
+
+This is usually better than exploring many tiny variants of the same local tweak.
+The point is not endless branching. The point is to avoid getting trapped in one local optimum too early.
 
 ## Good Status Meanings
 
@@ -106,11 +126,13 @@ This keeps the process persistent without becoming endless wandering.
 ## Practical Loop
 
 1. Pick one active branch.
-2. Run the smallest fair experiment.
-3. Update the branch state.
-4. If the current implementation is valuable, checkpoint or preserve it before moving on.
-5. If blocked, write the unblock condition explicitly.
-6. Periodically scan blocked branches to see whether recent work changed their prerequisites.
+2. Before testing it, load the nearest failed or blocked branches and note what this branch changes relative to them.
+3. Run the smallest fair experiment.
+4. Update the branch state.
+5. If the current implementation is valuable, checkpoint or preserve it before moving on.
+6. If blocked, write the unblock condition explicitly.
+7. Periodically scan blocked branches to see whether recent work changed their prerequisites.
+8. Keep at least one alternative branch family alive until the leading family has earned the right to dominate.
 
 If multiple agents are working in parallel:
 
@@ -148,6 +170,7 @@ next: revisit GPU offload branch
 - Do not use branching as an excuse to avoid pruning.
 - A blocked branch is not a win; it is deferred uncertainty.
 - Periodic revisiting is good. Circular rediscovery is not.
+- Do not treat five variants of the same idea as a truly diverse search frontier.
 - In multi-agent mode, branch ownership should be explicit, not implied.
 
 ## Output Format

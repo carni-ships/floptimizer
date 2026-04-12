@@ -38,6 +38,7 @@ Use this file when the task needs a trustworthy benchmark, a fair before/after c
 - For serious runs, collect machine-level telemetry too: swap, memory pressure, disk usage, thermal or power state, and accelerator utilization or memory when available.
 - Keep a true control baseline and run ablations after bundled wins so you know what actually helped. Use [`ablation-and-controls.md`](ablation-and-controls.md) when attribution is unclear.
 - If the result may be fragile or tuned to one narrow point, run sensitivity checks and record uncertainty. Use [`uncertainty-and-sensitivity.md`](uncertainty-and-sensitivity.md).
+- If a very large win might be coming from a loophole in the harness rather than a true improvement, harden the evaluator before celebrating it. Use [`evaluator-hardening.md`](evaluator-hardening.md).
 
 ## Fast Behavior-Proof Checklist
 
@@ -248,6 +249,7 @@ That default apply path only removes old skill artifacts. Broader cleanup scopes
 - Benchmarking a "faster" path that changed semantics, precision, ordering guarantees, or durability behavior
 - Trading lower latency for unbounded memory growth or durability loss
 - Trusting a single profile captured while unrelated work was competing for CPU, memory, disk, or network
+- Allowing the benchmark harness to be gamed by stale outputs, skipped work, narrowed datasets, hidden warm-state assumptions, or reduced correctness coverage
 
 ## Sanity Checks Before Trusting A Number
 
@@ -258,6 +260,7 @@ That default apply path only removes old skill artifacts. Broader cleanup scopes
 - If a win only appears at one operating point, verify whether it still holds across the real load or batch range before keeping it.
 - If a win appears only in steady warm state, verify that cold-start, rewarm, or invalidation costs do not erase it in the real workload.
 - If long or sustained runs degrade unexpectedly, inspect telemetry for swap churn, thermal throttling, power-mode limits, storage saturation, or device-memory cliffs before blaming the algorithm.
+- If the gain is suspiciously large, ask what work may have been removed, hidden, cached, narrowed, or bypassed before calling it real.
 
 ## Report Template
 

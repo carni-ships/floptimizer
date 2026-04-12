@@ -26,6 +26,7 @@ When a run reveals friction, note things such as:
 - a reusable heuristic the skill should remember
 - an exemplar repo or paper the skill should add
 - a reusable optimization trick that should be harvested into the trick catalog rather than copied into the skill itself
+- a prompt, wording, or routing change that seems to improve how the agent searches or validates
 
 ## Good Candidate Types
 
@@ -42,8 +43,9 @@ When a run reveals friction, note things such as:
 2. Keep the notes compact and specific.
 3. Periodically harvest those notes into a backlog with [`../scripts/harvest_skill_feedback.sh`](../scripts/harvest_skill_feedback.sh).
 4. Review the backlog for repeated or high-severity issues.
-5. Make the smallest skill change that closes the gap.
-6. Revalidate the skill and re-import it where needed.
+5. When the candidate change is really a wording or routing change, evaluate it on a small representative task set before adopting it widely. Use [`prompt-evaluation.md`](prompt-evaluation.md).
+6. Make the smallest skill change that closes the gap.
+7. Revalidate the skill and re-import it where needed.
 
 ## Evidence Standard
 
@@ -59,6 +61,7 @@ Be cautious when:
 - the issue was just normal judgment under uncertainty
 - the environment was unusual and the fix would overfit
 - the suggestion is really a one-off project detail, not a skill improvement
+- the wording change felt nicer but was not tested on realistic tasks
 
 ## Good Feedback Example
 
@@ -75,4 +78,5 @@ candidate_update: add dependency-version check to the stuck-state workflow
 - Do not auto-edit the skill from one run without review.
 - Prefer small targeted edits over broad rewrites.
 - Keep project-specific details out of the core skill unless they generalize.
+- Treat prompt and routing changes like code changes: evaluate them, do not just "feel" them.
 - Revalidate after every skill update.

@@ -620,6 +620,14 @@ cat > "$RUN_DIR/notes.md" <<EOF
 
 -
 
+## Branch Family And Failure Propagation
+
+- branch_family:
+- failed_attempts_consulted:
+- what_this_branch_does_differently:
+- what_future_branches_should_avoid:
+- frontier_role: leading-family | alternative-family | speculative-family | convergence-check
+
 ## Confounders
 
 -
@@ -702,6 +710,13 @@ cat > "$RUN_DIR/notes.md" <<EOF
 - reproducibility_artifacts:
 - figure_or_table_suggestion:
 - paper_candidate: yes | no
+
+## Evaluator Hardening
+
+- evaluator_risks:
+- hardening_checks:
+- holdout_or_oracle:
+- fake_win_concerns:
 
 ## Skill Feedback
 

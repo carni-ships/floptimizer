@@ -147,9 +147,29 @@ ${BENCHMARK_COMMAND:-}
 - commit_ref:
 - reason:
 
+## Branch Families To Keep Alive
+
+- leading_family:
+- alternative_family:
+- speculative_or_enabling_family:
+
+## Recent Failure Families
+
+- 
+
 ## Known Blockers
 
 - 
+
+## Evaluator Risks
+
+- 
+
+## Prompt Or Skill Steering Variant
+
+- variant_name:
+- compared_against:
+- expected_behavior_change:
 
 ## Stop Rule
 
