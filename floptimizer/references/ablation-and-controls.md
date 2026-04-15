@@ -33,6 +33,8 @@ After the full bundle wins, strip pieces back out:
 - downstream optimization only versus baseline
 - vendor primitive versus custom code
 - new algorithm with old layout versus new algorithm with new layout
+- full loop or process change versus the old loop
+- loop minus one guardrail or one role when you are changing the optimization workflow itself
 
 The goal is not perfect academic purity. The goal is to learn which lever is worth keeping.
 
@@ -78,6 +80,7 @@ Only claim what the controls support.
 - If only the bundle wins, say the bundle wins and the individual contributions are unresolved.
 - If a change matters only as an enabler, say so explicitly.
 - If the result disappears under control checks, downgrade it to provisional.
+- If a new workflow step, prompt, judge count, or review pattern is being proposed as doctrine, ablate the loop component before encoding it as a rule.
 
 ## Output Format
 

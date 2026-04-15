@@ -65,6 +65,7 @@ Use [`references/invariants-and-acceptance.md`](references/invariants-and-accept
 - Treat redundant processing as a first-class clue: repeated parsing, validation, encoding, copying, fan-out, scans, retries, and recomputation are often signals of removable work.
 - Treat dependencies as part of the optimization surface. If profiles point into libraries, runtimes, drivers, or imported packages, include version choice, configuration, replacement, or upstream fixes in the search space.
 - Treat some optimizations as path-dependent. A change may be valuable because it unlocks a later win, not because it is the final win by itself.
+- Treat the unchanged incumbent as a first-class option. A pass is allowed to conclude that the current implementation is still best for now; do not force revision just because another pass was run.
 - Keep the search structured. Track branches of ideas, mark blocked ones explicitly, and revisit them when enabling work changes the prerequisites.
 - Feed failed-attempt notes forward. Before advancing a nearby branch, load the closest failed or blocked attempts and state what this branch does differently so the search learns instead of looping.
 - Keep a small amount of search diversity alive when the space is uncertain. Prefer two or three distinct branch families over five tiny variants of the same local idea. Use [`references/search-diversity.md`](references/search-diversity.md) when the search starts collapsing too early.
@@ -75,6 +76,7 @@ Use [`references/invariants-and-acceptance.md`](references/invariants-and-accept
 - Do not halt a promising rewrite-heavy direction with "too major of a lift" until you have written the smallest slice, boundary, oracle, and fallback. Use [`references/rewrite-decomposition.md`](references/rewrite-decomposition.md) when that decomposition is not obvious.
 - Write down the reasoning behind serious attempts so later agents can tell why an idea won, failed, or is merely blocked.
 - Untested implementation is not complete. If correctness checks could not be run, report the result as implementation-only or blocked-on-validation, with the missing checks and the reason they were not run.
+- When a claimed win needs judgment beyond raw metrics, prefer at least one fresh validation pass that is not anchored on the implementation story. Use [`references/independent-validation.md`](references/independent-validation.md) when a result needs an independent reviewer, fresh evaluator, or blind comparison setup.
 - Checkpoint the last known-good implementation before risky changes when rollback would otherwise be reconstructive or ambiguous.
 - Preserve correct but non-winning builds when they are expensive to recreate, useful as fallback or oracle paths, or plausible candidates for later improvement.
 - Preserve correctness, security, durability, privacy, and debuggability. Do not introduce undefined behavior, benchmark-only hacks, silent precision loss, unbounded memory growth, or durability regressions.
@@ -106,6 +108,7 @@ Use [`references/invariants-and-acceptance.md`](references/invariants-and-accept
 
 Load these references as needed:
 - [`references/benchmarking.md`](references/benchmarking.md) for workload design, noise control, and before/after reporting.
+- [`references/independent-validation.md`](references/independent-validation.md) for fresh validation passes when a keep decision may be biased by authorship context or evaluation framing.
 - [`references/system-telemetry.md`](references/system-telemetry.md) for broader machine-level signals such as thermal pressure, swap churn, storage saturation, device-memory cliffs, and other unconventional bottlenecks.
 - [`references/resource-gating.md`](references/resource-gating.md) for deciding whether the machine is healthy enough to launch another heavy run and how to label that run for other agents.
 - [`references/non-competing-mode.md`](references/non-competing-mode.md) for analysis-only or low-load operation when the user requests no fresh heavy computation or the machine is too busy for more load.
@@ -159,6 +162,7 @@ Fast routes:
 - hard next-step judgment or unclear interpretation: [`references/reasoning-budget.md`](references/reasoning-budget.md), [`references/idea-ranking.md`](references/idea-ranking.md), [`references/iteration-strategy.md`](references/iteration-strategy.md)
 - current search feels trapped at the wrong abstraction level: [`references/optimization-levels.md`](references/optimization-levels.md), [`references/idea-ranking.md`](references/idea-ranking.md), [`references/optimization-playbook.md`](references/optimization-playbook.md)
 - bundled changes with unclear attribution: [`references/ablation-and-controls.md`](references/ablation-and-controls.md)
+- a claimed win needs an unbiased second look or fresh comparison context: [`references/independent-validation.md`](references/independent-validation.md), [`references/benchmarking.md`](references/benchmarking.md)
 - stuck optimization search: [`references/iteration-strategy.md`](references/iteration-strategy.md), [`references/exploration-graph.md`](references/exploration-graph.md), [`references/research-strategy.md`](references/research-strategy.md), [`references/novel-hypothesis-generation.md`](references/novel-hypothesis-generation.md)
 - parallel agent search on one workspace or machine: [`references/agent-coordination.md`](references/agent-coordination.md), [`references/subagent-orchestration.md`](references/subagent-orchestration.md)
 - accelerator, SIMD, or device-specific work: [`references/hardware-acceleration.md`](references/hardware-acceleration.md), [`references/apple-silicon-cpu.md`](references/apple-silicon-cpu.md), [`references/system-telemetry.md`](references/system-telemetry.md)

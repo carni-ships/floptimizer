@@ -640,6 +640,11 @@ cat > "$RUN_DIR/notes.md" <<EOF
 
 -
 
+## Incumbent Decision
+
+- unchanged_incumbent_kept: yes | no
+- stop_or_continue_reason:
+
 ## Validation Gate
 
 - correctness_checks_run:
@@ -717,6 +722,14 @@ cat > "$RUN_DIR/notes.md" <<EOF
 - hardening_checks:
 - holdout_or_oracle:
 - fake_win_concerns:
+
+## Independent Validation
+
+- fresh_validator_or_reviewer:
+- shared_context_with_implementer:
+- validation_scope:
+- independent_verdict:
+- remaining_uncertainty:
 
 ## Skill Feedback
 

@@ -168,6 +168,7 @@ Use [`scaling-analysis.md`](scaling-analysis.md) when the sweep is a first-class
 - Keep benchmark artifacts together. A baseline capture and a candidate capture should each have their own timestamped folder with raw outputs preserved.
 - When using sampled profilers, compare both the profile and the wall-clock outcome.
 - Report both absolute values and percentage deltas.
+- For campaign-level strategy claims across many tasks or problem instances, prefer paired comparisons and confidence intervals instead of a single anecdotal summary.
 
 ## Capture Helper
 

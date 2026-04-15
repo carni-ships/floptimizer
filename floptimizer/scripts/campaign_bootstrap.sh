@@ -171,6 +171,18 @@ ${BENCHMARK_COMMAND:-}
 - compared_against:
 - expected_behavior_change:
 
+## Incumbent Stop Or Convergence Rule
+
+- unchanged_incumbent_can_win: yes
+- stop_after:
+- notes:
+
+## Independent Validation Plan
+
+- when_required:
+- fresh_validator_or_reviewer:
+- comparison_style:
+
 ## Stop Rule
 
 - 

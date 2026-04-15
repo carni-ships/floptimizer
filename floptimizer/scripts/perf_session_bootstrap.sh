@@ -518,6 +518,12 @@ cat > "$SESSION_DIR/starter-report.md" <<EOF
 - what_future_branches_should_avoid:
 - frontier_shape: converged | diverse | too-wide
 
+## Incumbent And Convergence
+
+- incumbent_is_still_best:
+- incumbent_stop_rule:
+- convergence_signal:
+
 ## Environment-Specific Tuning Notes
 
 - hardware_profile:
@@ -588,6 +594,14 @@ cat > "$SESSION_DIR/starter-report.md" <<EOF
 - hardening_checks:
 - holdout_or_oracle:
 - fake_win_concerns:
+
+## Independent Validation
+
+- fresh_validator_or_reviewer:
+- shared_context_with_implementer:
+- validation_scope:
+- independent_verdict:
+- remaining_uncertainty:
 
 ## Checkpoint Decision
 
