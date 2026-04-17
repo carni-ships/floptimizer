@@ -12,6 +12,7 @@ system_work_mode: heavy-ok | prefer-non-competing | non-competing
 
 - agent:
   role:
+  pattern:
   branch_or_worktree:
   integration_status: in-progress | ready-for-review | merged | parked
   hypothesis_branch:
@@ -19,6 +20,12 @@ system_work_mode: heavy-ok | prefer-non-competing | non-competing
   work_mode: heavy-ok | non-competing
   compute_permission: none | claim-required
   write_scope:
+  acceptance_criteria:
+  validation_plan:
+  handoff_commit_or_checkpoint:
+  handoff_commit_ref:
+  handoff_remote_ref:
+  handoff_to:
   last_checkpoint_at:
   preserved_branch_or_worktree:
   expected_outputs:
@@ -62,6 +69,9 @@ system_work_mode: heavy-ok | prefer-non-competing | non-competing
 Suggested use:
 
 - keep `Active Agents` small and current
+- record `pattern`, `acceptance_criteria`, and `validation_plan` so subagents are not freelancing the contract
+- record `handoff_commit_or_checkpoint` so the heavy-lane reviewer knows exactly what branch state to test
+- record `handoff_commit_ref` and `handoff_remote_ref` so the review target is immutable and durable
 - make `role` and `expected_outputs` explicit when agents are specialized
 - move `integration_status` to `ready-for-review` when a subagent branch is ready for lead-agent review
 - keep `Write Claims` narrow

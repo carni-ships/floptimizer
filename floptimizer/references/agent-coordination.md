@@ -95,6 +95,13 @@ When the compute slot is occupied:
 - update coordination notes
 - stay in non-competing mode unless the user explicitly reprioritizes
 
+In practice, this usually means:
+
+- light-lane agents can still research, inspect code, generate ideas, and write bounded code changes on their own branches
+- the central coordinator, or whichever agent currently owns the heavy lane, is the one who runs the expensive tests, benchmarks, or profiles against the exact committed revision handed off for review
+- the heavy-lane reviewer recommends keep or reject based on that evidence
+- merge happens only after the lead agent approves integration
+
 A background job still occupies the compute slot until it exits or is terminated. Detached execution frees attention, not machine capacity.
 Before starting a new heavy job, run [`resource-gating.md`](resource-gating.md) or [`../scripts/resource_gate.sh`](../scripts/resource_gate.sh). A free compute slot is not enough if the machine itself is already saturated.
 
@@ -131,8 +138,16 @@ Good pattern:
 - one implementation subagent changes a bounded write scope
 - one testing subagent validates correctness and runs captures while holding the compute slot
 - one review subagent checks invariants and regression risk
+- for nontrivial branches, keep the builder separate from the main verifier roles
 - each write-enabled subagent works on its own git branch or worktree
 - the lead agent reviews the subagent branch before merge, cherry-pick, or manual porting
+
+Strong operational default:
+
+- light-lane agents do the cheap thinking and branch-local coding
+- they commit or checkpoint their branch when it is ready for heavier scrutiny
+- they push the branch and record the remote ref when another agent may need to review it later or the state would be costly to lose
+- the lead agent or heavy-lane verifier picks up that committed revision, runs the expensive validation, and returns a keep or reject recommendation
 
 Use [`subagent-orchestration.md`](subagent-orchestration.md) when you want a clearer role split, handoff contract, and recommended task graph.
 
@@ -149,7 +164,10 @@ Use [`subagent-orchestration.md`](subagent-orchestration.md) when you want a cle
 - Keep the compute slot claimed for background or detached jobs until the process actually ends.
 - Record blocked, won, lost, and active experiment branches in one shared place.
 - After meaningful results, checkpoint the branch state and, for significant builds, preserve them on a branch or worktree instead of leaving them only in a dirty workspace.
+- Record the exact commit ref under review when a branch is handed off for heavy validation, not just the branch name.
+- Record the remote ref too when the review target has been pushed.
 - Have the lead agent review a subagent's branch before integrating it into the main working line.
+- For risky branches, require at least one verifier other than the builder before calling the branch ready for integration.
 - If claims overlap, serialize the work rather than hoping merge cleanup will be cheap.
 - Release claims quickly when you stop actively working that area.
 

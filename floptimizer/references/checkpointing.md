@@ -44,11 +44,14 @@ Good code checkpoints are usually:
 
 - a dedicated git branch or worktree
 - one or more intentional commits
+- a pushed remote branch when the review target would be costly to lose or another agent may need to resume from it
 - a note in the branch log or coordination ledger pointing to that branch
 
 When subagents are involved:
 
 - preserve their meaningful implementation state on the subagent's own branch or worktree
+- if that state is about to be handed off for heavy validation, record the exact commit ref under review
+- push the branch and record the remote ref when local-only state would be too fragile
 - have the lead agent review that branch before integrating it
 - treat reviewed integration as a separate step from simply preserving the branch
 
@@ -116,5 +119,6 @@ When checkpointing, record:
 - previous_good_commit_ref
 - preserved_branch_or_worktree
 - commit_ref if any
+- remote_ref if pushed
 - rerun_or_rebuild_hint
 - revisit_trigger

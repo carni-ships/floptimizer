@@ -57,9 +57,11 @@ Use [`references/invariants-and-acceptance.md`](references/invariants-and-accept
 
 - Optimize for measurable outcomes, not aesthetic code changes.
 - Get aggressive only after identifying the bottleneck with data.
-- On one shared machine, parallelize search and serialize measurement: keep one heavy lane for builds, profiles, benchmarks, and sweeps, while other agents stay in light lanes such as research, review, planning, and disjoint low-risk edits.
+- On one shared machine, parallelize search and serialize measurement: keep one heavy lane for builds, profiles, benchmarks, and sweeps, while other agents stay in light lanes such as research, code generation on isolated branches, review, planning, and other non-competing work.
 - When using subagents on one shared machine, prefer 2 to 4 total agents, with 3 as the usual default: one lead agent, one or two light-lane subagents, and at most one active heavy-lane worker at a time.
 - When subagents are writing code, each subagent should work on its own git branch or worktree. The lead agent should review that branch, then merge or cherry-pick it only after the result looks safe.
+- Choose the multi-agent pattern deliberately instead of defaulting to one swarm shape. Use [`references/multi-agent-patterns.md`](references/multi-agent-patterns.md) to choose between independent exploration, disjoint parallel implementation, phased waves, sequential handoff, or builder-plus-verifier overlays.
+- Separate build from verify whenever the branch is nontrivial. Light-lane builders can research, generate ideas, write code, and commit bounded work on their own branches. The lead agent or explicitly assigned heavy-lane verifier should then pick up that committed branch, run the expensive validation against the exact handed-off revision, and recommend keep or reject. The lead agent remains the only merge or integration authority.
 - Prefer big wins before micro-optimizations: algorithms, batching, indexing, data layout, contention removal, serialization reduction, cache strategy, and topology changes.
 - Consider preprocessing and input shaping as first-class optimization levers. A better-normalized, sorted, packed, canonicalized, or prefiltered input can make downstream code dramatically cheaper.
 - Treat redundant processing as a first-class clue: repeated parsing, validation, encoding, copying, fan-out, scans, retries, and recomputation are often signals of removable work.
@@ -125,6 +127,7 @@ Load these references as needed:
 - [`references/uncertainty-and-sensitivity.md`](references/uncertainty-and-sensitivity.md) for deciding whether a gain is robust, fragile, noisy, or too narrowly tuned to trust.
 - [`references/agent-coordination.md`](references/agent-coordination.md) for parallel multi-agent experiment work, disjoint write ownership, and compute-slot coordination on shared machines.
 - [`references/subagent-orchestration.md`](references/subagent-orchestration.md) for splitting a campaign into research, implementation, testing, and review subagents without duplicating work or oversubscribing the machine.
+- [`references/multi-agent-patterns.md`](references/multi-agent-patterns.md) for selecting the right orchestration shape before spawning subagents.
 - [`references/iteration-strategy.md`](references/iteration-strategy.md) for what to do when optimization progress stalls, how to change abstraction levels, and how to distrust noisy profiling runs.
 - [`references/exploration-graph.md`](references/exploration-graph.md) for keeping a branching hypothesis log, marking blocked directions, and revisiting them when prerequisites change.
 - [`references/experiment-log.md`](references/experiment-log.md) for recording why a serious experiment worked, failed, or stayed blocked so later agents can reuse the reasoning.
@@ -162,6 +165,7 @@ Fast routes:
 - hard next-step judgment or unclear interpretation: [`references/reasoning-budget.md`](references/reasoning-budget.md), [`references/idea-ranking.md`](references/idea-ranking.md), [`references/iteration-strategy.md`](references/iteration-strategy.md)
 - current search feels trapped at the wrong abstraction level: [`references/optimization-levels.md`](references/optimization-levels.md), [`references/idea-ranking.md`](references/idea-ranking.md), [`references/optimization-playbook.md`](references/optimization-playbook.md)
 - bundled changes with unclear attribution: [`references/ablation-and-controls.md`](references/ablation-and-controls.md)
+- choosing how to split a large multi-agent effort: [`references/multi-agent-patterns.md`](references/multi-agent-patterns.md), [`references/subagent-orchestration.md`](references/subagent-orchestration.md), [`references/agent-coordination.md`](references/agent-coordination.md)
 - a claimed win needs an unbiased second look or fresh comparison context: [`references/independent-validation.md`](references/independent-validation.md), [`references/benchmarking.md`](references/benchmarking.md)
 - stuck optimization search: [`references/iteration-strategy.md`](references/iteration-strategy.md), [`references/exploration-graph.md`](references/exploration-graph.md), [`references/research-strategy.md`](references/research-strategy.md), [`references/novel-hypothesis-generation.md`](references/novel-hypothesis-generation.md)
 - parallel agent search on one workspace or machine: [`references/agent-coordination.md`](references/agent-coordination.md), [`references/subagent-orchestration.md`](references/subagent-orchestration.md)
